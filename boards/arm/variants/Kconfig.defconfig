@@ -1,0 +1,28 @@
+###
+ # \file
+ #
+ # \brief Provides Skywire Nano board configurations
+ #
+ # © NimbeLink Corp. 2020
+ #
+ # All rights reserved except as explicitly granted in the license agreement
+ # between NimbeLink Corp. and the designated licensee.  No other use or
+ # disclosure of this software is permitted. Portions of this software may be
+ # subject to third party license terms as specified in this software, and such
+ # portions are excluded from the preceding copyright notice of NimbeLink Corp.
+ ##
+
+if BOARD_SKYWIRE_NANO_WIDGET
+
+config BOARD
+	default "skywire_nano_widget" if BOARD_SKYWIRE_NANO_WIDGET
+
+DT_CHOSEN_Z_CODE_PARTITION := zephyr,code-partition
+
+config FLASH_LOAD_SIZE
+	default $(dt_chosen_reg_size_hex,$(DT_CHOSEN_Z_CODE_PARTITION))
+
+config FLASH_LOAD_OFFSET
+	default $(dt_chosen_reg_addr_hex,$(DT_CHOSEN_Z_CODE_PARTITION))
+
+endif

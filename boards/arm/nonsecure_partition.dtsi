@@ -1,0 +1,36 @@
+/**
+ * © NimbeLink Corp. 2020
+ *
+ * All rights reserved except as explicitly granted in the license agreement
+ * between NimbeLink Corp. and the designated licensee.  No other use or
+ * disclosure of this software is permitted. Portions of this software may be
+ * subject to third party license terms as specified in this software, and such
+ * portions are excluded from the preceding copyright notice of NimbeLink Corp.
+ */
+
+#include "skywire_nano.dtsi"
+
+&flash0 {
+    partitions {
+        slot0_ns_partition: partition@b0000 {
+            label = "image-2";
+            reg = <0x000b0000 0x20000>;
+        };
+
+        slot1_ns_partition: partition@d0000 {
+            label = "image-3";
+            reg = <0x000d0000 0x20000>;
+        };
+    };
+};
+
+/ {
+    // SRAM allocated to the widget
+    sram0_widget: memory@20000000 {
+        reg = <0x20000000 DT_SIZE_K(64)>;
+    };
+
+    aliases {
+        widget-ram = &sram0;
+    };
+};

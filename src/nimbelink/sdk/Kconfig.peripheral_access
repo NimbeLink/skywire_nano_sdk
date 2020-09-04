@@ -1,0 +1,163 @@
+###
+ # \file
+ #
+ # \brief Provides peripheral access configurations for the Skywire Nano SDK
+ #
+ # © NimbeLink Corp. 2020
+ #
+ # All rights reserved except as explicitly granted in the license agreement
+ # between NimbeLink Corp. and the designated licensee.  No other use or
+ # disclosure of this software is permitted. Portions of this software may be
+ # subject to third party license terms as specified in this software, and such
+ # portions are excluded from the preceding copyright notice of NimbeLink Corp.
+ ##
+
+# For each Nordic peripheral that might get set up during system
+# initialization, generate a request to the Secure application to have
+# Non-Secure access to the peripheral
+
+config REQUEST_NON_SECURE_UARTE_1
+    bool "Request Non-Secure access to UART1"
+    default y if UART_1_NRF_UARTE
+    default y if SPI_1_NRF_SPI
+    default y if I2C_1_NRF_TWIM
+    help
+        Generates a request for Non-Secure access to the UARTE1 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_UARTE_2
+    bool "Request Non-Secure access to UART2"
+    default y if UART_2_NRF_UARTE
+    default y if SPI_2_NRF_SPI
+    default y if I2C_2_NRF_TWIM
+    help
+        Generates a request for Non-Secure access to the UARTE2 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_UARTE_3
+    bool "Request Non-Secure access to UART3"
+    default y if UART_3_NRF_UARTE
+    default y if SPI_3_NRF_SPI
+    default y if I2C_3_NRF_TWIM
+    help
+        Generates a request for Non-Secure access to the UARTE3 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_SAADC
+    bool "Request Non-Secure access to SAADC"
+    default n
+    help
+        Generates a request for Non-Secure access to the SAADC peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_TIMER_0
+    bool "Request Non-Secure access to TIMER0"
+    default y if NRFX_TIMER0
+    help
+        Generates a request for Non-Secure access to the TIMER0 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_TIMER_1
+    bool "Request Non-Secure access to TIMER1"
+    default y if NRFX_TIMER1
+    help
+        Generates a request for Non-Secure access to the TIMER1 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_TIMER_2
+    bool "Request Non-Secure access to TIMER2"
+    default y if NRFX_TIMER2
+    help
+        Generates a request for Non-Secure access to the TIMER2 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_RTC_1
+    bool "Request Non-Secure access to RTC1"
+    default y if NRF_RTC_TIMER
+    help
+        Generates a request for Non-Secure access to the RTC1 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_DPPIC
+    bool "Request Non-Secure access to DPPIC"
+    default n
+    help
+        Generates a request for Non-Secure access to the DPPIC peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_EGU_1
+    bool "Request Non-Secure access to EGU1"
+    default y if NRFX_EGU1
+    help
+        Generates a request for Non-Secure access to the EGU1 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_EGU_2
+    bool "Request Non-Secure access to EGU2"
+    default y if NRFX_EGU2
+    help
+        Generates a request for Non-Secure access to the EGU2 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_EGU_3
+    bool "Request Non-Secure access to EGU3"
+    default y if NRFX_EGU3
+    help
+        Generates a request for Non-Secure access to the EGU3 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_EGU_4
+    bool "Request Non-Secure access to EGU4"
+    default y if NRFX_EGU4
+    help
+        Generates a request for Non-Secure access to the EGU4 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_EGU_5
+    bool "Request Non-Secure access to EGU5"
+    default y if NRFX_EGU5
+    help
+        Generates a request for Non-Secure access to the EGU5 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_PWM_0
+    bool "Request Non-Secure access to PWM0"
+    default y if PWM_0
+    help
+        Generates a request for Non-Secure access to the PWM0 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_PWM_1
+    bool "Request Non-Secure access to PWM1"
+    default y if PWM_1
+    help
+        Generates a request for Non-Secure access to the PWM1 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_PWM_2
+    bool "Request Non-Secure access to PWM2"
+    default y if PWM_2
+    help
+        Generates a request for Non-Secure access to the PWM2 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_PWM_3
+    bool "Request Non-Secure access to PWM3"
+    default y if PWM_3
+    help
+        Generates a request for Non-Secure access to the PWM3 peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_PDM
+    bool "Request Non-Secure access to PDM"
+    default n
+    help
+        Generates a request for Non-Secure access to the PDM peripheral at
+        system startup.
+
+config REQUEST_NON_SECURE_I2S
+    bool "Request Non-Secure access to I2S"
+    default n
+    help
+        Generates a request for Non-Secure access to the I2S peripheral at
+        system startup.
