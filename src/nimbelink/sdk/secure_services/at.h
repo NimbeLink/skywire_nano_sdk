@@ -272,7 +272,7 @@ namespace NimbeLink::Sdk::SecureServices::At
         uint32_t commandLength,
         char *response,
         uint32_t maxLength,
-        uint32_t *responseLength
+        uint32_t *responseLength = nullptr
     )
     {
         return At_RunCommand(
