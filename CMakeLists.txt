@@ -13,6 +13,6 @@
  ##
 
 # If the SDK is being used, include the directory in the build
-if (CONFIG_SKYWIRE_NANO_SDK)
+if (CONFIG_NIMBELINK_SDK)
     add_subdirectory(src)
 endif()

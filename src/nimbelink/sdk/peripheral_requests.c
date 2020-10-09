@@ -3,7 +3,7 @@
  *
  * \brief Requests Non-Secure access to configured peripherals
  *
- * © NimbeLink Corp. 2020
+ * (C) NimbeLink Corp. 2020
  *
  * All rights reserved except as explicitly granted in the license agreement
  * between NimbeLink Corp. and the designated licensee.  No other use or
@@ -11,9 +11,8 @@
  * subject to third party license terms as specified in this software, and such
  * portions are excluded from the preceding copyright notice of NimbeLink Corp.
  */
-#include <array>
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
 #include <init.h>
 #include <nrf9160.h>
@@ -31,7 +30,7 @@
  */
 static int RequestPeripherals(struct device *device)
 {
-    static constexpr const uintptr_t Peripherals[] = {
+    static const uintptr_t Peripherals[] = {
     #   if CONFIG_REQUEST_NON_SECURE_UARTE_1
         NRF_UARTE1_NS_BASE,
     #   endif
@@ -96,11 +95,9 @@ static int RequestPeripherals(struct device *device)
 
     (void)device;
 
-    for (std::size_t i = 0; i < std::size(Peripherals); i++)
+    for (size_t i = 0; i < (sizeof(Peripherals)/sizeof(Peripherals[0])); i++)
     {
-        int32_t result = NimbeLink::Sdk::SecureServices::Kernel::PeripheralAccess(
-            reinterpret_cast<const void *>(Peripherals[i])
-        );
+        int32_t result = Kernel_PeripheralAccess((const void *)(Peripherals[i]));
 
         if (result != 0)
         {

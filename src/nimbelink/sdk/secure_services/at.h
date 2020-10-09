@@ -3,7 +3,7 @@
  *
  * \brief Enumerates all available AT interface secure services
  *
- * © NimbeLink Corp. 2020
+ * (C) NimbeLink Corp. 2020
  *
  * All rights reserved except as explicitly granted in the license agreement
  * between NimbeLink Corp. and the designated licensee.  No other use or
@@ -14,6 +14,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdio.h>
 
 #include "nimbelink/sdk/at/cme.h"
 #include "nimbelink/sdk/at/cms.h"
@@ -62,13 +63,13 @@ union At_Error
     int32_t value;
 
     // A CME error value
-    CmeErrorType cmeError;
+    enum CmeErrorType cmeError;
 
     // A CMS error value
-    CmsErrorType cmsError;
+    enum CmsErrorType cmsError;
 
     // A CME error value
-    ExtendedCmeErrorType extendedCmeError;
+    enum ExtendedCmeErrorType extendedCmeError;
 };
 
 struct At_RunCommandParameters
@@ -89,7 +90,7 @@ struct At_RunCommandParameters
     uint32_t responseLength;
 
     // The result of the command handling
-    At_Result result;
+    enum At_Result result;
 
     // The error that occurred, if any
     union At_Error error;
@@ -117,7 +118,7 @@ struct At_RunCommandParameters
  *      The result of the request
  */
 static inline int32_t At_RunCommand(
-    At_Result *result,
+    enum At_Result *result,
     union At_Error *error,
     const char *command,
     uint32_t commandLength,
@@ -225,7 +226,7 @@ static inline int32_t At_ReadUrc(
 
     int32_t result = Call(SecureService_At, At_Apis_ReadUrc, &parameters, sizeof(parameters));
 
-    if ((result == 0) && (urcLength != nullptr))
+    if ((result == 0) && (urcLength != NULL))
     {
         *urcLength = parameters.urcLength;
     }
@@ -276,7 +277,7 @@ namespace NimbeLink::Sdk::SecureServices::At
     )
     {
         return At_RunCommand(
-            reinterpret_cast<At_Result *>(result),
+            reinterpret_cast<enum At_Result *>(result),
             error,
             command,
             commandLength,

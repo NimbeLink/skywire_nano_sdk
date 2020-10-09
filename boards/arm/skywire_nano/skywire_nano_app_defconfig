@@ -1,9 +1,9 @@
 ###
  # \file
  #
- # \brief Builds the Skywire Nano SDK
+ # \brief Provides Skywire Nano app configurations
  #
- # (C) NimbeLink Corp. 2020
+ # © NimbeLink Corp. 2020
  #
  # All rights reserved except as explicitly granted in the license agreement
  # between NimbeLink Corp. and the designated licensee.  No other use or
@@ -12,4 +12,16 @@
  # portions are excluded from the preceding copyright notice of NimbeLink Corp.
  ##
 
-add_subdirectory(sdk)
+CONFIG_ARM=y
+CONFIG_SOC_SERIES_NRF91X=y
+CONFIG_SOC_NRF9160_SICA=y
+CONFIG_BOARD_SKYWIRE_NANO_APP=y
+
+# Enable MPU
+CONFIG_ARM_MPU=y
+
+# Enable TrustZone-M
+CONFIG_ARM_TRUSTZONE_M=y
+
+# This Board implies building Non-Secure firmware
+CONFIG_TRUSTED_EXECUTION_NONSECURE=y

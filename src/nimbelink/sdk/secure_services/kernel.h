@@ -3,7 +3,7 @@
  *
  * \brief Enumerates all available kernel secure services
  *
- * © NimbeLink Corp. 2020
+ * (C) NimbeLink Corp. 2020
  *
  * All rights reserved except as explicitly granted in the license agreement
  * between NimbeLink Corp. and the designated licensee.  No other use or
@@ -27,6 +27,9 @@ enum Kernel_Apis
 
     // Request Non-Secure access to a peripheral
     Kernel_Apis_PeripheralAccess    = 1,
+
+    // Mark the Non-Secure image as valid
+    Kernel_Apis_MarkImageValid      = 2,
 };
 
 /**
@@ -66,6 +69,19 @@ static inline int32_t Kernel_PeripheralAccess(const void *peripheral)
     return Call(SecureService_Kernel, Kernel_Apis_PeripheralAccess, &parameters, sizeof(parameters));
 }
 
+/**
+ * \brief Requests marking the Non-Secure image as valid
+ *
+ * \param none
+ *
+ * \return int32_t
+ *      The result of the request
+ */
+static inline int32_t Kernel_MarkImageValid(void)
+{
+    return __Call(CREATE_REQUEST(SecureService_Kernel, Kernel_Apis_MarkImageValid), NULL, 0);
+}
+
 #ifdef __cplusplus
 namespace NimbeLink::Sdk::SecureServices::Kernel
 {
@@ -74,7 +90,8 @@ namespace NimbeLink::Sdk::SecureServices::Kernel
         enum _E
         {
             PendSv              = Kernel_Apis_PendSv,
-            PeripheralAccess    = Kernel_Apis_PeripheralAccess
+            PeripheralAccess    = Kernel_Apis_PeripheralAccess,
+            MarkImageValid      = Kernel_Apis_MarkImageValid,
         };
     };
 
@@ -90,6 +107,11 @@ namespace NimbeLink::Sdk::SecureServices::Kernel
     static inline int32_t PeripheralAccess(const void *peripheral)
     {
         return Kernel_PeripheralAccess(peripheral);
+    }
+
+    static inline int32_t MarkImageValid(void)
+    {
+        return Kernel_MarkImageValid();
     }
 }
 #endif

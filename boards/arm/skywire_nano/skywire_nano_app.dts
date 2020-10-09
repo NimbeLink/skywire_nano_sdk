@@ -11,7 +11,7 @@
 /dts-v1/;
 
 #include <nordic/nrf9160ns_sica.dtsi>
-#include "../nonsecure_partition.dtsi"
+#include <nimbelink/nonsecure_partition.dtsi>
 
 / {
     chosen {

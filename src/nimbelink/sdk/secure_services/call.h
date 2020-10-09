@@ -4,7 +4,7 @@
  * \brief A collection of secure 'services' available for use in Non-Secure
  *        firmware
  *
- * © NimbeLink Corp. 2020
+ * (C) NimbeLink Corp. 2020
  *
  * All rights reserved except as explicitly granted in the license agreement
  * between NimbeLink Corp. and the designated licensee.  No other use or
@@ -43,9 +43,10 @@ extern int32_t __Call(uint32_t request, void *parameters, uint32_t size);
  */
 enum SecureService
 {
-    // Requests a Non-Secure kernel servicing
     SecureService_Kernel    = 0,
     SecureService_At        = 1,
+    SecureService_App       = 2,
+    SecureService_Net       = 3,
 };
 
 /**
@@ -92,6 +93,8 @@ namespace NimbeLink::Sdk::SecureServices
         {
             Kernel  = SecureService_Kernel,
             At      = SecureService_At,
+            App     = SecureService_App,
+            Net     = SecureService_Net,
         };
     };
 

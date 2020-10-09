@@ -1,9 +1,9 @@
 ###
  # \file
  #
- # \brief Provides Skywire Nano widget configurations
+ # \brief Sets up the script package for west's use
  #
- # © NimbeLink Corp. 2020
+ # (C) NimbeLink Corp. 2020
  #
  # All rights reserved except as explicitly granted in the license agreement
  # between NimbeLink Corp. and the designated licensee.  No other use or
@@ -11,17 +11,15 @@
  # subject to third party license terms as specified in this software, and such
  # portions are excluded from the preceding copyright notice of NimbeLink Corp.
  ##
+import os
+import sys
 
-CONFIG_ARM=y
-CONFIG_SOC_SERIES_NRF91X=y
-CONFIG_SOC_NRF9160_SICA=y
-CONFIG_BOARD_SKYWIRE_NANO_WIDGET=y
+sys.path.insert(
+    1,
+    os.path.dirname(os.path.realpath(__file__))
+)
 
-# Enable MPU
-CONFIG_ARM_MPU=y
-
-# Enable TrustZone-M
-CONFIG_ARM_TRUSTZONE_M=y
-
-# This Board implies building Non-Secure firmware
-CONFIG_TRUSTED_EXECUTION_NONSECURE=y
+from commands.app import SkywireAppCommand
+from commands.dfu import SkywireDfuCommand
+from commands.flash import SkywireFlashCommand
+from commands.update import SkywireUpdateCommand

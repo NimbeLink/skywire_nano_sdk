@@ -3,7 +3,7 @@
  #
  # \brief Provides configurations for the Skywire Nano SDK
  #
- # © NimbeLink Corp. 2020
+ # (C) NimbeLink Corp. 2020
  #
  # All rights reserved except as explicitly granted in the license agreement
  # between NimbeLink Corp. and the designated licensee.  No other use or
@@ -12,14 +12,48 @@
  # portions are excluded from the preceding copyright notice of NimbeLink Corp.
  ##
 
-menuconfig SKYWIRE_NANO_SDK
-    bool "Skywire Nano SDK"
+menuconfig NIMBELINK_SDK
+    bool "NimbeLink SDK"
     default n
+    depends on !BSD_LIBRARY
     help
-        Enables building the Skywire Nano SDK and its enabled resources.
+        Enables building the NimbeLink SDK and its enabled resources.
 
-if SKYWIRE_NANO_SDK
+if NIMBELINK_SDK
 menu "Non-Secure Peripheral Access"
 rsource "Kconfig.peripheral_access"
 endmenu
+
+config AUTO_IMAGE_VALIDATION
+    bool "Automatically mark image as valid after application booted"
+    default y
+    help
+        Automatically marks the Non-Secure firmware image as 'valid' once the
+        application has fully initialized and booted.
+
+config NIMBELINK_SOCKETS
+    bool "Link the Secure Service socket APIs as 'offloaded sockets'"
+    default y
+    depends on NET_SOCKETS_OFFLOAD
+    help
+        Automatically link NimbeLink's Secure stack socket Secure Services with
+        Zephyr's 'offloaded sockets' subsystem.
+
+config NIMBELINK_AT_CMD
+    bool "Redirect the at_cmd APIs to Secure Service APIs"
+    default y
+    depends on AT_CMD_OFFLOAD
+    help
+        Redirect APIs for the nRF Connect SDK's at_cmd library to use the
+        NimbeLink Secure stack Secure Services.
+
+config NIMBELINK_FOTA_DOWNLOAD
+    bool "Redirect the fota_download APIs to Secure Service APIs"
+    default y
+    depends on FOTA_DOWNLOAD_OFFLOAD
+    depends on AT_CMD
+    depends on AT_NOTIF
+    help
+        Redirect APIs for the nRF Connect SDK's fota_download library to use
+        the NimbeLink Secure stack Secure Services.
 endif

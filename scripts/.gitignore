@@ -1,0 +1,2 @@
+# Ignore the compiled Python files from our west commands
+*.pyc

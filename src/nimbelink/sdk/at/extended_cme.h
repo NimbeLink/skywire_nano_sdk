@@ -3,7 +3,7 @@
  *
  * \brief Extended CME error codes for application-specific usage
  *
- * © NimbeLink Corp. 2020
+ * (C) NimbeLink Corp. 2020
  *
  * All rights reserved except as explicitly granted in the license agreement
  * between NimbeLink Corp. and the designated licensee.  No other use or

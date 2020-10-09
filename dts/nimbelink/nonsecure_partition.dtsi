@@ -8,7 +8,7 @@
  * portions are excluded from the preceding copyright notice of NimbeLink Corp.
  */
 
-#include "skywire_nano.dtsi"
+#include <nimbelink/skywire_nano.dtsi>
 
 &flash0 {
     partitions {

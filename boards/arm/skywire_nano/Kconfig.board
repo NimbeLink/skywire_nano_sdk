@@ -14,7 +14,7 @@
 
 if SOC_NRF9160_SICA
 
-config BOARD_SKYWIRE_NANO_WIDGET
-    bool "Skywire Nano -- Non-Secure Widget"
+config BOARD_SKYWIRE_NANO_APP
+    bool "Skywire Nano -- Non-Secure App"
 
 endif
