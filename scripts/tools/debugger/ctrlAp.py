@@ -230,7 +230,7 @@ class CtrlAp:
 
         # If the CPU hasn't read our debugger->CPU data, do it for it
         if not self.waitMailboxRead(timeout = 0.0):
-            self.dap.api.read_access_port_register(self.Port, self.Registeres.MailboxTxData)
+            self.dap.api.read_access_port_register(self.Port, self.Registers.MailboxTxData)
 
     def clearRx(self):
         """Clears the CPU->debugger mailbox buffering
