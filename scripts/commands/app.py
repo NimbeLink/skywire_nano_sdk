@@ -60,30 +60,6 @@ class SkywireAppCommand(SkywireCommand):
         :return none:
         """
 
-        # Add an argument for halting the monitor
-        parser.add_argument(
-            "-p",
-            "--primary-halt",
-            type = lambda x: int(x, 0),
-            dest = "haltPrimary",
-            action = "store",
-            required = False,
-            metavar = "SEC",
-            help = "Attempt to halt the Nano's primary application"
-        )
-
-        # Add an argument for halting the widget
-        parser.add_argument(
-            "-s",
-            "--secondary-halt",
-            type = lambda x: int(x, 0),
-            dest = "haltSecondary",
-            action = "store",
-            required = False,
-            metavar = "SEC",
-            help = "Attempt to halt the Nano's secondary application"
-        )
-
         # Add an argument for converting the device
         parser.add_argument(
             "-c",
@@ -130,30 +106,6 @@ class SkywireAppCommand(SkywireCommand):
             uicr.enableApProtect(secure = secure)
 
         mailbox = Mailbox(ctrlAp = CtrlAp())
-
-        # If they want to halt the monitor, do so
-        if args.haltPrimary != None:
-            halted = mailbox.halt(
-                target = Mailbox.Target.Monitor,
-                duration = args.haltPrimary
-            )
-
-            if halted:
-                print("Primary application halted")
-            else:
-                print("Failed to halt primary application")
-
-        # If they want to halt the widget, do so
-        if args.haltSecondary != None:
-            halted = mailbox.halt(
-                target = Mailbox.Target.Widget,
-                duration = args.haltSecondary
-            )
-
-            if halted:
-                print("Secondary application halted")
-            else:
-                print("Failed to halt secondary application")
 
         # If they want to start a conversion, do so
         if args.convert > 0:

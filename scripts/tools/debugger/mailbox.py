@@ -74,13 +74,10 @@ class Mailbox:
         """The Non-Secure secondary application"""
 
     class Request:
-        Halt        = 1
-        """Halts an application"""
-
-        Dfu         = 2
+        Dfu         = 1
         """Starts an Device Firmware Update process"""
 
-        Convert     = 3
+        Convert     = 2
         """Converts the device to flash-able"""
 
     class Response:
@@ -139,42 +136,6 @@ class Mailbox:
 
         # If the response wasn't ACKed, that's a paddlin'
         if not response or (response.type != Mailbox.Response.Ok):
-            return False
-
-        return True
-
-    def halt(self, target, duration = None):
-        """Halts an application
-
-        :param self:
-            Self
-        :param target:
-            Which application to halt
-        :param duration:
-            How long to halt for
-
-        :return True:
-            Target halted
-        :return False:
-            Failed to halt application
-        """
-
-        # If the didn't specify the duration, use the largest possible
-        if duration == None:
-            duration = 0xFFFFFFFF
-
-        # Form the request
-        request = Mailbox.Packet(
-            type = Mailbox.Request.Halt,
-            length = 2,
-            data = [
-                target,
-                duration
-            ]
-        )
-
-        # If we fail to send the request, that's a paddlin'
-        if not self._sendRequest(request = request):
             return False
 
         return True
