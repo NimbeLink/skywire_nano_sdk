@@ -85,20 +85,6 @@ config REQUEST_NON_SECURE_DPPIC
         Generates a request for Non-Secure access to the DPPIC peripheral at
         system startup.
 
-config REQUEST_NON_SECURE_EGU_1
-    bool "Request Non-Secure access to EGU1"
-    default y if NRFX_EGU1
-    help
-        Generates a request for Non-Secure access to the EGU1 peripheral at
-        system startup.
-
-config REQUEST_NON_SECURE_EGU_2
-    bool "Request Non-Secure access to EGU2"
-    default y if NRFX_EGU2
-    help
-        Generates a request for Non-Secure access to the EGU2 peripheral at
-        system startup.
-
 config REQUEST_NON_SECURE_EGU_3
     bool "Request Non-Secure access to EGU3"
     default y if NRFX_EGU3

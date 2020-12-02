@@ -13,23 +13,35 @@
  */
 #pragma once
 
+#include <errno.h>
 #include <stdint.h>
 
 #include "nimbelink/sdk/secure_services/call.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * \brief The available APIs
  */
-enum Kernel_Apis
+enum Kernel_Api
 {
     // Trigger the Non-Secure kernel's context switcher
-    Kernel_Apis_PendSv              = 0,
+    Kernel_Api_PendSv               = 0,
 
     // Request Non-Secure access to a peripheral
-    Kernel_Apis_PeripheralAccess    = 1,
+    Kernel_Api_PeripheralAccess     = 1,
 
     // Mark the Non-Secure image as valid
-    Kernel_Apis_MarkImageValid      = 2,
+    Kernel_Api_MarkImageValid       = 2,
+
+    // Get the current errno value
+    Kernel_Api_Errno                = 3,
+
+    // Reset
+    Kernel_Api_Reset                = 4,
 };
 
 /**
@@ -42,7 +54,7 @@ enum Kernel_Apis
  */
 static inline int32_t Kernel_PendSv(void)
 {
-    return __Call(CREATE_REQUEST(SecureService_Kernel, Kernel_Apis_PendSv), NULL, 0);
+    return CallSecureService(SecureService_Kernel, Kernel_Api_PendSv, NULL, 0);
 }
 
 struct Kernel_PeripheralAccessParameters
@@ -66,7 +78,7 @@ static inline int32_t Kernel_PeripheralAccess(const void *peripheral)
         .peripheral = peripheral
     };
 
-    return Call(SecureService_Kernel, Kernel_Apis_PeripheralAccess, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Kernel, Kernel_Api_PeripheralAccess, &parameters, sizeof(parameters));
 }
 
 /**
@@ -79,23 +91,87 @@ static inline int32_t Kernel_PeripheralAccess(const void *peripheral)
  */
 static inline int32_t Kernel_MarkImageValid(void)
 {
-    return __Call(CREATE_REQUEST(SecureService_Kernel, Kernel_Apis_MarkImageValid), NULL, 0);
+    return CallSecureService(SecureService_Kernel, Kernel_Api_MarkImageValid, NULL, 0);
 }
+
+struct Kernel_ErrnoParameters
+{
+    int32_t errnoValue;
+};
+
+/**
+ * \brief Gets the latest errno value
+ *
+ * \param none
+ *
+ * \return int32_t
+ *      The result of the request
+ */
+static inline int32_t Kernel_Errno(void)
+{
+    struct Kernel_ErrnoParameters parameters;
+
+    int32_t result = CallSecureService(SecureService_Kernel, Kernel_Api_Errno, &parameters, sizeof(parameters));
+
+    if (result == 0)
+    {
+        errno = parameters.errnoValue;
+    }
+
+    return result;
+}
+
+/**
+ * \brief Requests skipping launching the application after the reset
+ */
+#define KERNEL_RESET_SKIP_LAUNCH    (1U << 0)
+
+struct Kernel_ResetParameters
+{
+    // Flags for the reset handling
+    uint32_t flags;
+};
+
+/**
+ * \brief Requests a reset
+ *
+ *  If 'successful', this function will not return.
+ *
+ * \param flags
+ *      Flags for the reset handling
+ *
+ * \return int32_t
+ *      The result of the request
+ */
+static inline int32_t Kernel_Reset(uint32_t flags)
+{
+    struct Kernel_ResetParameters parameters = {
+        .flags = flags
+    };
+
+    return CallSecureService(SecureService_Kernel, Kernel_Api_Reset, &parameters, sizeof(parameters));
+}
+
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef __cplusplus
 namespace NimbeLink::Sdk::SecureServices::Kernel
 {
-    struct _Apis
+    struct _Api
     {
         enum _E
         {
-            PendSv              = Kernel_Apis_PendSv,
-            PeripheralAccess    = Kernel_Apis_PeripheralAccess,
-            MarkImageValid      = Kernel_Apis_MarkImageValid,
+            PendSv              = Kernel_Api_PendSv,
+            PeripheralAccess    = Kernel_Api_PeripheralAccess,
+            MarkImageValid      = Kernel_Api_MarkImageValid,
+            Errno               = Kernel_Api_Errno,
+            Reset               = Kernel_Api_Reset,
         };
     };
 
-    using Apis = _Apis::_E;
+    using Api = _Api::_E;
 
     static inline int32_t PendSv(void)
     {
@@ -112,6 +188,25 @@ namespace NimbeLink::Sdk::SecureServices::Kernel
     static inline int32_t MarkImageValid(void)
     {
         return Kernel_MarkImageValid();
+    }
+
+    using ErrnoParameters = Kernel_ErrnoParameters;
+
+    static inline int32_t Errno(void)
+    {
+        return Kernel_Errno();
+    }
+
+    namespace ResetFlag
+    {
+        static constexpr const uint32_t SkipLaunch = KERNEL_RESET_SKIP_LAUNCH;
+    };
+
+    using ResetParameters = Kernel_ResetParameters;
+
+    static inline int32_t Reset(uint32_t flags = 0)
+    {
+        return Kernel_Reset(flags);
     }
 }
 #endif

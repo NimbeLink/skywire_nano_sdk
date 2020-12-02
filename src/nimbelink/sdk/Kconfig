@@ -31,6 +31,22 @@ config AUTO_IMAGE_VALIDATION
         Automatically marks the Non-Secure firmware image as 'valid' once the
         application has fully initialized and booted.
 
+config NIMBELINK_REBOOT
+    bool "Handle requesting a reboot using Secure Services"
+    default y
+    help
+        Use Secure Services for system reboot requests.
+
+config ABORT_ON_FATAL_ERROR
+    bool "Halt the application when a fatal error occurs"
+    depends on !RESET_ON_FATAL_ERROR
+    default y
+    help
+        Allow Secure firmware to halt the application when a fatal error
+        occurs. This better allows the Secure firmware to faciliate a
+        subsequent DFU operation without risking the Non-Secure application
+        firmware causing a hard-to-stop boot loop.
+
 config NIMBELINK_SOCKETS
     bool "Link the Secure Service socket APIs as 'offloaded sockets'"
     default y

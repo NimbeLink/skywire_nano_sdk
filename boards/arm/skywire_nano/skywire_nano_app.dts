@@ -1,5 +1,5 @@
 /**
- * © NimbeLink Corp. 2020
+ * (C) NimbeLink Corp. 2020
  *
  * All rights reserved except as explicitly granted in the license agreement
  * between NimbeLink Corp. and the designated licensee.  No other use or
@@ -11,12 +11,13 @@
 /dts-v1/;
 
 #include <nordic/nrf9160ns_sica.dtsi>
+#include <nimbelink/skywire_nano.dtsi>
 #include <nimbelink/nonsecure_partition.dtsi>
 
 / {
     chosen {
         zephyr,flash = &flash0;
-        zephyr,sram = &sram0_widget;
+        zephyr,sram = &sram0_app;
         zephyr,code-partition = &slot0_ns_partition;
 
         zephyr,console = &uart1;

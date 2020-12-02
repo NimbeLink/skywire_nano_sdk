@@ -44,12 +44,12 @@ enum ExtendedCmeErrorType
 #ifdef __cplusplus
 #include <cstdbool>
 
-namespace NimbeLink::Sdk::At
+namespace NimbeLink::Sdk::Cell::At
 {
     class ExtendedCmeError;
 }
 
-class NimbeLink::Sdk::At::ExtendedCmeError
+class NimbeLink::Sdk::Cell::At::ExtendedCmeError
 {
     public:
         enum Type

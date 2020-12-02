@@ -1,7 +1,7 @@
 ###
  # \file
  #
- # \brief Works with Skywire Nano devices
+ # \brief A base sub-command
  #
  # (C) NimbeLink Corp. 2020
  #
@@ -21,30 +21,24 @@ import re
 import subprocess
 import textwrap
 
-from west.commands import WestCommand
 from west.configuration import config
 
 from tools.wsl import Wsl
 
-class SkywireCommand(WestCommand):
+class Command:
     """A west command for working with Skywire Nano devices, collected under
     the root 'skywire' command
-    """
-
-    NamePrefix = "skywire"
-    """A prefix to go before each command's name, in the form of:
-
-        '<prefix>-<name>'
     """
 
     ConfigPrefix = "skywire:nano"
     """A prefix we'll use for all of our Skywire Nano command configurations"""
 
-    def generateDescription(self):
+    @staticmethod
+    def _generateDescription(description):
         """Generates a big string describing this command
 
-        :param self:
-            Self
+        :param description:
+            The description text
 
         :return String:
             The description string
@@ -84,7 +78,7 @@ class SkywireCommand(WestCommand):
         # more picky about Python's triple-quote syntax
         lines = []
 
-        for paragraph in self._about:
+        for paragraph in description:
             # Move our raw strings over so they're justified to the left
             justifiedText = textwrap.dedent(paragraph)
 
@@ -97,15 +91,15 @@ class SkywireCommand(WestCommand):
             # Add in a blank line between each paragraph's set of lines
             lines.append("")
 
-        description = ""
+        text = ""
 
         for line in lines:
             # Compile the 80-column lines generated above into a single string
-            description += "{}\n".format(line)
+            text += "{}\n".format(line)
 
-        return description
+        return text
 
-    def __init__(self, *args, name, about, needUsb = False, configs = None, **kwargs):
+    def __init__(self, name, help, description, needUsb = False, configs = None):
         """Creates a new skywire command
 
         This will append a prefix to all Skywire Command child classes to
@@ -114,60 +108,34 @@ class SkywireCommand(WestCommand):
 
         :param self:
             Self
-        :param *args:
-            Additional arguments
-        :param **kwargs:
-            Additional keyword arguments
         :param name:
             The name of the Skywire command
-        :param about:
-            The long-form about text of the Skywire command
+        :param help:
+            The short-form help text of the Skywire command
+        :param description:
+            The long-form description text of the Skywire command
         :param needUsb:
             Whether or not this command needs USB functionality
+        :param configs:
+            Configurations for this command
 
         :return none:
         """
 
-        # Add the configurations as additional 'about' text
+        # Add the configurations as additional description text
         if (configs != None) and (len(configs) > 0):
-            about += ["Configurations:"]
+            description += ["Configurations:"]
 
             for config in configs:
-                about += ["-    {}:{}".format(SkywireCommand.ConfigPrefix, config)]
+                description += ["-    {}:{}".format(Command.ConfigPrefix, config)]
 
         self._name = name
-        self._about = about
+        self._help = help
         self._needUsb = needUsb
         self._configs = configs
 
-        if "prefix" not in kwargs:
-            prefix = True
-        else:
-            prefix = kwargs["prefix"]
-
-            kwargs.pop("prefix")
-
-        # If we should include a prefix, figure that out
-        if prefix:
-            # Append our prefix to the command's name
-            if not name.startswith(SkywireCommand.NamePrefix):
-                name = "{}-{}".format(SkywireCommand.NamePrefix, name)
-
-        # Make sure the child class didn't try to specify 'description'
-        # manually, since we'll do that for them
-        for key, value in kwargs.items():
-            if key == "description":
-                raise Exception(
-                    "Do not include a description in a Skywire command ('{}')!".format(
-                        self.__name__
-                    )
-                )
-
         # Generate the description text
-        description = self.generateDescription()
-
-        # Pass up along the chain of inheritance
-        super().__init__(name, *args, **kwargs, description = description)
+        self._description = Command._generateDescription(description = description)
 
     def getConfig(self, name):
         """Gets a configuration for a command
@@ -188,7 +156,7 @@ class SkywireCommand(WestCommand):
         # standalone string
         fields = name.split(".")
 
-        namespace = SkywireCommand.ConfigPrefix
+        namespace = Command.ConfigPrefix
 
         if len(fields) > 1:
             namespace += ":{}".format(fields[0])
@@ -202,23 +170,7 @@ class SkywireCommand(WestCommand):
             fallback = None
         )
 
-    def generateUnimplementedException(self):
-        """Generates an unimplemented exception with a function's signature
-
-        :param self:
-            Self
-
-        :raise NotImplementedError:
-
-        :return none:
-        """
-
-        raise NotImplementedError("'{}' not implemented in '{}'!".format(
-            inspect.currentframe().f_back.f_code.co_name,
-            self.__class__.__name__
-        ))
-
-    def do_add_parser(self, parserAdder):
+    def _addArguments(self, parserAdder):
         """Adds a parser
 
         :param self:
@@ -226,8 +178,7 @@ class SkywireCommand(WestCommand):
         :param parserAdder:
             The parser adder
 
-        :return parser:
-            The new parser
+        :return none:
         """
 
         # Make sure we keep our wonderful description's formatting by telling
@@ -237,28 +188,15 @@ class SkywireCommand(WestCommand):
         # This should effectively mean all of our hard formatting work above is
         # left alone and printed to the console literally.
         parser = parserAdder.add_parser(
-            self.name,
-            help = self.help,
-            description = self.description,
+            self._name,
+            help = self._help,
+            description = self._description,
             formatter_class = argparse.RawDescriptionHelpFormatter
-        )
-
-        # Add an always-available argument for being verbose
-        parser.add_argument(
-            "-v",
-            "--verbose",
-            dest = "verbose",
-            action = "count",
-            default = 0,
-            required = False,
-            help = "Use verbose output"
         )
 
         self.addArguments(parser)
 
-        return parser
-
-    def do_run(self, args, unknownArgs):
+    def _runCommand(self, args, unknownArgs):
         """Runs the stuff command
 
         :param self:
@@ -281,6 +219,22 @@ class SkywireCommand(WestCommand):
             self.runCommand(args, unknownArgs)
         except KeyboardInterrupt as ex:
             self.abortCommand()
+
+    def generateUnimplementedException(self):
+        """Generates an unimplemented exception with a function's signature
+
+        :param self:
+            Self
+
+        :raise NotImplementedError:
+
+        :return none:
+        """
+
+        raise NotImplementedError("'{}' not implemented in '{}'!".format(
+            inspect.currentframe().f_back.f_code.co_name,
+            self.__class__.__name__
+        ))
 
     def addArguments(self, parser):
         """Adds parser arguments

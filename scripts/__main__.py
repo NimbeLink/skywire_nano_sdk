@@ -12,57 +12,39 @@
  # portions are excluded from the preceding copyright notice of NimbeLink Corp.
  ##
 
-import argparse
 import sys
 
-from commands.app import SkywireAppCommand
-from commands.dfu import SkywireDfuCommand
-from commands.flash import SkywireFlashCommand
-from commands.update import SkywireUpdateCommand
+from dualie import Dualie
 
-class Command:
-    @staticmethod
-    def run(args):
-        """Runs a command invocation
+from commands.app import AppCommand
+from commands.format import FormatCommand
+from commands.update import UpdateCommand
 
-        :param args:
-            Arguments to parse
+# Make a configuration for our 'skywire' command
+anonymousConfig = Dualie.AnonymousConfig(
+    name = "skywire",
+    isRaw = None,
+    description = "provides Skywire commands",
+    subCommands = [
+        AppCommand(),
+        FormatCommand(),
+        UpdateCommand(),
+    ]
+)
 
-        :return none
-        """
-
-        # Make a parser and a sub-parser for our commands
-        parser = argparse.ArgumentParser()
-
-        subParser = parser.add_subparsers(
-            title = "commands",
-            dest = "command",
-            required = True
-        )
-
-        # Make a command for each of the ones we provide
-        commands = [
-            SkywireAppCommand(prefix = False),
-            SkywireDfuCommand(prefix = False),
-            SkywireFlashCommand(prefix = False),
-            SkywireUpdateCommand(prefix = False),
-        ]
-
-        for command in commands:
-            # Add this command's arguments to a new sub-parser
-            command.do_add_parser(parserAdder = subParser)
-
-        # Parse the arguments
-        args = parser.parse_args(args = args)
-
-        # Call the appropriate command with the parsed arguments
-        for command in commands:
-            if command.name != args.command:
-                continue
-
-            command.do_run(args = args, unknownArgs = [])
-
-            break
-
+# If we're being run from a standard Python context, manually run our command
+#
+# Otherwise, 'west' (which would be the thing likely running us in that case)
+# will do everything for us.
 if __name__ == "__main__":
-    Command.run(sys.argv[1:])
+    anonymousConfig.isRaw = True
+
+    SkywireCommand = Dualie.makeInstantiable(anonymousConfig = anonymousConfig)
+
+    SkywireCommand().runRaw(args = sys.argv[1:])
+
+# Else, we're being run from 'west', so set up the dualie command
+else:
+    anonymousConfig.isRaw = False
+
+    SkywireCommand = Dualie.makeInstantiable(anonymousConfig = anonymousConfig)

@@ -12,7 +12,7 @@
  # portions are excluded from the preceding copyright notice of NimbeLink Corp.
  ##
 
-# Include the Zephyr helper
+# Include the Zephyr handling
 zephyr_sources(
-    helpers/zephyr.cpp
+    zephyr/call.c
 )

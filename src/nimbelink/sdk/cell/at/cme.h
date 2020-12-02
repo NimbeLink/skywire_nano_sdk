@@ -103,12 +103,12 @@ enum CmeErrorType
 #ifdef __cplusplus
 #include <cstdbool>
 
-namespace NimbeLink::Sdk::At
+namespace NimbeLink::Sdk::Cell::At
 {
     class CmeError;
 }
 
-class NimbeLink::Sdk::At::CmeError
+class NimbeLink::Sdk::Cell::At::CmeError
 {
     public:
         enum Type

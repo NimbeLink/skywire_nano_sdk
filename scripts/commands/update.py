@@ -16,35 +16,29 @@ import os
 import serial
 import time
 
-from commands.skywire import SkywireCommand
+from commands.command import Command
 from tools.debugger.ctrlAp import CtrlAp
 from tools.debugger.mailbox import Mailbox
 from tools.xmodem import Xmodem
 
-class SkywireUpdateCommand(SkywireCommand):
+class UpdateCommand(Command):
     """A command for updating Skywire Nano devices with XMODEM
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         """Creates a new update command
 
         :param self:
             Self
-        :param *args:
-            Positional arguments
-        :param **kwargs:
-            Keyword arguments
 
         :return none:
         """
 
         super().__init__(
-            *args,
-            **kwargs,
             name = "update",
             needUsb = True,
             help = "updates Skywire Nano devices",
-            about = [
+            description = [
                 "This tool will attempt to update a Skywire Nano's firmware."
             ]
         )
@@ -101,7 +95,7 @@ class SkywireUpdateCommand(SkywireCommand):
             "--xmodem-device",
             dest = "xmodemDevice",
             action = "store",
-            required = True,
+            required = False,
             metavar = "NAME",
             help = "An XMODEM serial device to use to send the firmware file"
         )
@@ -114,7 +108,7 @@ class SkywireUpdateCommand(SkywireCommand):
             action = "store",
             type = int,
             choices = [128, 1024],
-            default = 128,
+            default = 1024,
             required = False,
             metavar = "SIZE",
             help = "The size of XMODEM packets, in bytes"
@@ -167,7 +161,7 @@ class SkywireUpdateCommand(SkywireCommand):
 
         self.packetSize = args.packetSize
 
-        if (args.atDevice != None) and (args.atDevice != "skip"):
+        if args.atDevice != None:
             # Get our AT terminal serial port device
             self.atDevice = serial.Serial(
                 port = args.atDevice,
@@ -184,13 +178,21 @@ class SkywireUpdateCommand(SkywireCommand):
         else:
             self.debugger = None
 
-        # Get our XMODEM interface
-        self.xmodem = Xmodem(device = serial.Serial(
-            port = args.xmodemDevice,
-            baudrate = 115200,
-            timeout = 1,
-            rtscts = self.flowControl
-        ))
+        if args.xmodemDevice != None:
+            # Get our XMODEM interface
+            self.xmodem = Xmodem(device = serial.Serial(
+                port = args.xmodemDevice,
+                baudrate = 115200,
+                timeout = 1,
+                rtscts = self.flowControl
+            ))
+
+        elif len(args.files) > 0:
+            print("Can't update files without an XMODEM device!")
+            return
+
+        else:
+            self.xmodemDevice = None
 
         # If we're being verbose, tell XMODEM that
         if args.verbose > 0:
@@ -199,6 +201,10 @@ class SkywireUpdateCommand(SkywireCommand):
         # Set up our interface
         if not self.setupInterface():
             return
+
+        # If we don't have any files, just trigger an update without a file
+        if len(args.files) < 1:
+            self.updateDevice(file = None, autoReboot = not args.noReboot)
 
         # Update!
         for file in args.files:
@@ -217,7 +223,8 @@ class SkywireUpdateCommand(SkywireCommand):
                 autoReboot = True
 
             with open(file, "rb") as openedFile:
-                self.updateDevice(file = openedFile, autoReboot = autoReboot)
+                if not self.updateDevice(file = openedFile, autoReboot = autoReboot):
+                    return
 
     def abortCommand(self):
         """Handles the user quitting an update
@@ -230,7 +237,7 @@ class SkywireUpdateCommand(SkywireCommand):
 
         print("Stopping update...")
 
-        self.endTransmission()
+        self.xmodem.endTransmission()
 
     def setupInterface(self):
         """Sets up our communication interface
@@ -297,26 +304,9 @@ class SkywireUpdateCommand(SkywireCommand):
             Failed to update device
         """
 
-        # Figure out how much data there is to send
-        length = 0
-
-        while True:
-            # Get another chunk of data
-            data = file.read(1024)
-
-            # If we're out of data, move on
-            if len(data) < 1:
-                break
-
-            # Note we got another chunk
-            length = length + len(data)
-
-        # Go back to the start of the file
-        file.seek(0)
-
         if self.atDevice:
             # Start the AT-based update
-            writeLength = self.atDevice.write("AT#FWUPD={},{}\r".format(length, int(autoReboot)).encode())
+            writeLength = self.atDevice.write("AT#FWUPD={}\r".format(int(autoReboot)).encode())
 
             # If that failed, that's a paddlin'
             if writeLength < 1:
@@ -332,7 +322,14 @@ class SkywireUpdateCommand(SkywireCommand):
             print("DFU started via AT command");
 
         elif self.debugger:
-            if not self.debugger.dfu(length = length, autoReboot = autoReboot):
+            started = False
+
+            for i in range(3):
+                if self.debugger.dfu(autoReboot = autoReboot):
+                    started = True
+                    break
+
+            if not started:
                 print("Failed to trigger update with mailbox!")
                 return False
 
@@ -341,9 +338,15 @@ class SkywireUpdateCommand(SkywireCommand):
         else:
             print("!!!! Assuming DFU has already been started")
 
+        if file == None:
+            return True
+
         # The XMODEM port might have been outputting some kernel logging, so
         # give a little bit of time for that to occur before popping into the
         # XMODEM handling (which will do its own sanity buffer clearing)
         time.sleep(0.5)
+
+        # Go back to the start of the file
+        file.seek(0)
 
         return self.xmodem.transfer(file, self.packetSize)

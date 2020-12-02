@@ -16,24 +16,26 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "nimbelink/sdk/at/cme.h"
-#include "nimbelink/sdk/at/cms.h"
-#include "nimbelink/sdk/at/extended_cme.h"
+#include "nimbelink/sdk/cell/at/cme.h"
+#include "nimbelink/sdk/cell/at/cms.h"
+#include "nimbelink/sdk/cell/at/extended_cme.h"
 #include "nimbelink/sdk/secure_services/call.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /**
  * \brief The available AT secure service APIs
  */
-enum At_Apis
+enum At_Api
 {
     // Run an AT command
-    At_Apis_RunCommand          = 0,
+    At_Api_RunCommand           = 0,
 
     // Subscribe to notifications of URCs
-    At_Apis_SubscribeUrcs       = 1,
-
-    // Reads the next available URC
-    At_Apis_ReadUrc             = 2,
+    At_Api_SubscribeUrcs        = 1,
 };
 
 /**
@@ -134,7 +136,7 @@ static inline int32_t At_RunCommand(
         .maxLength = maxLength
     };
 
-    int32_t _result = Call(SecureService_At, At_Apis_RunCommand, &parameters, sizeof(parameters));
+    int32_t _result = CallSecureService(SecureService_At, At_Api_RunCommand, &parameters, sizeof(parameters));
 
     // If the call itself has an error, it will be an errno-like value, so just
     // use that
@@ -162,7 +164,7 @@ static inline int32_t At_RunCommand(
     return 0;
 }
 
-typedef void (*At_UrcCallback)(void);
+typedef void (*At_UrcCallback)(const char *);
 
 struct At_SubscribeUrcsParameters
 {
@@ -185,69 +187,26 @@ static inline int32_t At_SubscribeUrcs(At_UrcCallback callback)
         .callback = callback
     };
 
-    return Call(SecureService_At, At_Apis_SubscribeUrcs, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_At, At_Api_SubscribeUrcs, &parameters, sizeof(parameters));
 }
 
-struct At_ReadUrcParameters
-{
-    // Where to store the URC
-    char *urc;
-
-    // The maximum URC length, including NULL byte
-    uint32_t maxLength;
-
-    // Where to store the actual URC length
-    uint32_t urcLength;
-};
-
-/**
- * \brief Reads the next available URC
- *
- * \param *urc
- *      Where to store the URC's contents
- * \param maxLength
- *      The maximum URC length, including NULL byte
- * \param *urcLength
- *      Where to store the actual URC length
- *
- * \return int32_t
- *      The result of the request
-*/
-static inline int32_t At_ReadUrc(
-    char *urc,
-    uint32_t maxLength,
-    uint32_t *urcLength
-)
-{
-    struct At_ReadUrcParameters parameters = {
-        .urc = urc,
-        .maxLength = maxLength
-    };
-
-    int32_t result = Call(SecureService_At, At_Apis_ReadUrc, &parameters, sizeof(parameters));
-
-    if ((result == 0) && (urcLength != NULL))
-    {
-        *urcLength = parameters.urcLength;
-    }
-
-    return result;
+#ifdef __cplusplus
 }
+#endif
 
 #ifdef __cplusplus
 namespace NimbeLink::Sdk::SecureServices::At
 {
-    struct _Apis
+    struct _Api
     {
         enum _E
         {
-            RunCommand      = At_Apis_RunCommand,
-            SubscribeUrcs   = At_Apis_SubscribeUrcs,
-            ReadUrc         = At_Apis_ReadUrc
+            RunCommand      = At_Api_RunCommand,
+            SubscribeUrcs   = At_Api_SubscribeUrcs,
         };
     };
 
-    using Apis = _Apis::_E;
+    using Api = _Api::_E;
 
     struct _Result
     {
@@ -293,17 +252,6 @@ namespace NimbeLink::Sdk::SecureServices::At
     static inline int32_t SubscribeUrcs(UrcCallback callback)
     {
         return At_SubscribeUrcs(callback);
-    }
-
-    using ReadUrcParameters = At_ReadUrcParameters;
-
-    static inline int32_t ReadUrc(
-        char *urc,
-        uint32_t maxLength,
-        uint32_t *urcLength = nullptr
-    )
-    {
-        return At_ReadUrc(urc, maxLength, urcLength);
     }
 }
 #endif

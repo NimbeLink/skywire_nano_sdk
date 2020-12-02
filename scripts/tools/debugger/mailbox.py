@@ -74,6 +74,9 @@ class Mailbox:
         """The Non-Secure secondary application"""
 
     class Request:
+        Ping        = 0
+        """Does a simple ping with the device"""
+
         Dfu         = 1
         """Starts an Device Firmware Update process"""
 
@@ -116,37 +119,64 @@ class Mailbox:
         :return True:
             Packet sent and acknowledged
         :return False:
-            Packet not sent; or not acknowledged
+            Packet not acknowledged
+        :return None:
+            No response
         """
 
         self._ctrlAp.clear()
 
         # If we fail to send the request, that's a paddlin'
         if not self._ctrlAp.writeMailbox(values = request.buffer, timeout = 3.0):
-            return False
+            return None
 
         # Try to get the response
         response = self._ctrlAp.readMailbox(length = 2, timeout = timeout)
 
         # If there wasn't a response, that's a paddlin'
         if not response:
-            return False
+            return None
 
         response = Mailbox.Packet.makeFromBuffer(buffer = response)
 
+        # If the response was somehow borked, that's a paddlin'
+        if not response:
+            return False
+
         # If the response wasn't ACKed, that's a paddlin'
-        if not response or (response.type != Mailbox.Response.Ok):
+        if response.type != Mailbox.Response.Ok:
             return False
 
         return True
 
-    def dfu(self, length = None, autoReboot = True):
+    def ping(self):
+        """Pings the device
+
+        :param self:
+            Self
+
+        :return True:
+            Device pinged
+        :return False:
+            Failed to ping device
+        """
+
+        # Form the request
+        request = Mailbox.Packet(
+            type = Mailbox.Request.Ping,
+            length = 0
+        )
+
+        if self._sendRequest(request = request):
+            return True
+
+        return False
+
+    def dfu(self, autoReboot = True):
         """Starts an application DFU
 
         :param self:
             Self
-        :param length:
-            The length of the file to send
         :param autoReboot:
             Whether or not to automatically reboot after a successful DFU
             transfer
@@ -160,18 +190,16 @@ class Mailbox:
         # Form the request
         request = Mailbox.Packet(
             type = Mailbox.Request.Dfu,
-            length = 2,
+            length = 1,
             data = [
-                length,
                 int(autoReboot)
             ]
         )
 
-        # If we fail to send the request, that's a paddlin'
-        if not self._sendRequest(request = request):
-            return False
+        if self._sendRequest(request = request):
+            return True
 
-        return True
+        return False
 
     def convert(self):
         """Converts a device
@@ -191,8 +219,15 @@ class Mailbox:
             length = 0
         )
 
-        # If we fail to send the request, that's a paddlin'
-        if not self._sendRequest(request = request, timeout = 10.0):
+        # If we get anything other than a timeout when starting the conversion,
+        # it went awry and that's a paddlin'
+        if self._sendRequest(request = request) != None:
             return False
 
-        return True
+        # Wait for the device to start responding to our pings, giving it a bit
+        # of time to finish the erasing and rebooting processes
+        for i in range(10):
+            if self.ping():
+                return True
+
+        return False

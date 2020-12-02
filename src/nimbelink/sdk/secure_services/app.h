@@ -17,13 +17,18 @@
 
 #include "nimbelink/sdk/secure_services/call.h"
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * \brief The available APIs
  */
-enum App_Apis
+enum App_Api
 {
     // Write a new signing/encryption key
-    App_Apis_AddKey                 = 0,
+    App_Api_AddKey                  = 0,
 };
 
 struct App_AddKeyParameters
@@ -53,21 +58,25 @@ static inline int32_t App_AddKey(const void *key, uint32_t length)
         .length = length
     };
 
-    return Call(SecureService_App, App_Apis_AddKey, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_App, App_Api_AddKey, &parameters, sizeof(parameters));
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef __cplusplus
 namespace NimbeLink::Sdk::SecureServices::App
 {
-    struct _Apis
+    struct _Api
     {
         enum _E
         {
-            AddKey              = App_Apis_AddKey,
+            AddKey              = App_Api_AddKey,
         };
     };
 
-    using Apis = _Apis::_E;
+    using Api = _Api::_E;
 
     using AddKeyParameters = App_AddKeyParameters;
 

@@ -3,7 +3,7 @@
  #
  # \brief Builds the Skywire Nano SDK
  #
- # © NimbeLink Corp. 2020
+ # (C) NimbeLink Corp. 2020
  #
  # All rights reserved except as explicitly granted in the license agreement
  # between NimbeLink Corp. and the designated licensee.  No other use or
@@ -12,7 +12,4 @@
  # portions are excluded from the preceding copyright notice of NimbeLink Corp.
  ##
 
-# If the SDK is being used, include the directory in the build
-if (CONFIG_NIMBELINK_SDK)
-    add_subdirectory(src)
-endif()
+add_subdirectory(src)

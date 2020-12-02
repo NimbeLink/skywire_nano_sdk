@@ -54,6 +54,58 @@ class CtrlAp:
 
         self.dap = Dap(*args, **kwargs)
 
+    def _waitAllErased(self):
+        """Waits for an erase all operation to finish
+
+        :param self:
+            Self
+
+        :return True:
+            All erased
+        :return False:
+            Failed to erase all
+        """
+
+        # Erase can sometimes take a while, so give this a super duper long
+        # while
+        for i in range(30):
+            # Get the erase status
+            status = self.dap.api.read_access_port_register(self.Port, self.Registers.EraseAllStatus)
+
+            # If the erase isn't shown as happening on the first go-round, then
+            # we probably failed to kick it off
+            if (i == 0) and (status != 1):
+                return False
+
+            # If the erase is now done, we're done
+            if status == 0:
+                return True
+
+            # Keep waiting for the erase to finish
+            time.sleep(1)
+
+        # Apparently we didn't see the end of the erase
+        return False
+
+    def eraseAll(self):
+        """Attempts to perform a mass erase
+
+        :param self:
+            Self
+
+        :return True:
+            All erased
+        :return False:
+            Failed to erase all
+        """
+
+        self.dap.api.write_access_port_register(self.Port, self.Registers.EraseAll, 0x1)
+
+        # Make sure the value gets flushed
+        #self.dap.api.read_access_port_register(self.Port, self.Registers.Reset)
+
+        return self._waitAllErased()
+
     def disableEraseProtect(self, key):
         """Attempts to disable erase protection
 
@@ -73,7 +125,7 @@ class CtrlAp:
         # Make sure the value gets flushed
         self.dap.api.read_access_port_register(self.Port, self.Registers.Reset)
 
-        return True
+        return self._waitAllErased()
 
     def waitMailboxRead(self, timeout = None):
         """Waits for our debugger->CPU data to be read by the CPU

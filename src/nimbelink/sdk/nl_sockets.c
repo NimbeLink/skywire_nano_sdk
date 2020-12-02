@@ -27,103 +27,174 @@
 #include <net/socket_offload.h>
 #include <zephyr.h>
 
+#include "nimbelink/sdk/secure_services/kernel.h"
 #include "nimbelink/sdk/secure_services/net.h"
 
 static int nl_socket_socket(int family, int type, int proto)
 {
-    return Net_Socket(
+    int result = Net_Socket(
         family,
         type,
         proto
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static int nl_socket_close(int fd)
 {
-    return Net_Close(
+    int result = Net_Close(
         fd
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static int nl_socket_accept(int fd, struct sockaddr *addr, socklen_t *addrlen)
 {
-    return Net_Accept(
+    int result = Net_Accept(
         fd,
         addr,
         addrlen
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static int nl_socket_bind(int fd, const struct sockaddr *addr, socklen_t addrlen)
 {
-    return Net_Bind(
+    int result = Net_Bind(
         fd,
         addr,
         addrlen
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static int nl_socket_listen(int fd, int backlog)
 {
-    return Net_Listen(
+    int result = Net_Listen(
         fd,
         backlog
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static int nl_socket_connect(int fd, const struct sockaddr *addr, socklen_t addrlen)
 {
-    return Net_Connect(
+    int result = Net_Connect(
         fd,
         addr,
         addrlen
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static inline int nl_socket_poll(struct pollfd *fds, int nfds, int timeout)
 {
-    return Net_Poll(
+    int result = Net_Poll(
         fds,
         nfds,
         timeout
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static int nl_socket_setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen)
 {
-    return Net_SetSockOpt(
+    int result = Net_SetSockOpt(
         fd,
         level,
         optname,
         optval,
         optlen
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static int nl_socket_getsockopt(int fd, int level, int optname, void *optval, socklen_t *optlen)
 {
-    return Net_GetSockOpt(
+    int result = Net_GetSockOpt(
         fd,
         level,
         optname,
         optval,
         optlen
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static ssize_t nl_socket_recv(int fd, void *buf, size_t max_len, int flags)
 {
-    return Net_Recv(
+    int result = Net_Recv(
         fd,
         buf,
         max_len,
         flags
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static ssize_t nl_socket_recvfrom(int fd, void *buf, short int len, short int flags, struct sockaddr *from, socklen_t *fromlen)
 {
-    return Net_RecvFrom(
+    int result = Net_RecvFrom(
         fd,
         buf,
         len,
@@ -131,21 +202,35 @@ static ssize_t nl_socket_recvfrom(int fd, void *buf, short int len, short int fl
         from,
         fromlen
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static ssize_t nl_socket_send(int fd, const void *buf, size_t len, int flags)
 {
-    return Net_Send(
+    int result = Net_Send(
         fd,
         buf,
         len,
         flags
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static ssize_t nl_socket_sendto(int fd, const void *buf, size_t len, int flags, const struct sockaddr *to, socklen_t tolen)
 {
-    return Net_SendTo(
+    int result = Net_SendTo(
         fd,
         buf,
         len,
@@ -153,6 +238,13 @@ static ssize_t nl_socket_sendto(int fd, const void *buf, size_t len, int flags, 
         to,
         tolen
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static void nl_socket_freeaddrinfo(struct addrinfo *root)
@@ -235,7 +327,7 @@ static int nl_socket_getaddrinfo(const char *node, const char *service, const st
     {
         nl_socket_freeaddrinfo(infos[0]);
 
-        return -ENOMEM;
+        return DNS_EAI_MEMORY;
     }
 
     // Make the offloaded API call
@@ -298,11 +390,20 @@ static int nl_socket_getaddrinfo(const char *node, const char *service, const st
 
 static int nl_socket_fcntl(int fd, int cmd, va_list args)
 {
-    return Net_Fcntl(
+    int flags = va_arg(args, int);
+
+    int result = Net_Fcntl(
         fd,
         cmd,
-        args
+        flags
     );
+
+    if (result < 0)
+    {
+        Kernel_Errno();
+    }
+
+    return result;
 }
 
 static const struct socket_offload nl_socket_ops = {

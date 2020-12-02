@@ -25,24 +25,29 @@
 
 #include "nimbelink/sdk/secure_services/call.h"
 
-enum Net_Apis
+#ifdef __cplusplus
+extern "C"
 {
-    Net_Apis_Socket         = 0,
-    Net_Apis_Close          = 1,
-    Net_Apis_Accept         = 2,
-    Net_Apis_Bind           = 3,
-    Net_Apis_Listen         = 4,
-    Net_Apis_Connect        = 5,
-    Net_Apis_Poll           = 6,
-    Net_Apis_SetSockOpt     = 7,
-    Net_Apis_GetSockOpt     = 8,
-    Net_Apis_Recv           = 9,
-    Net_Apis_RecvFrom       = 10,
-    Net_Apis_Send           = 11,
-    Net_Apis_SendTo         = 12,
-    Net_Apis_GetAddrInfo    = 13,
-    Net_Apis_FreeAddrInfo   = 14,
-    Net_Apis_Fcntl          = 15,
+#endif
+
+enum Net_Api
+{
+    Net_Api_Socket          = 0,
+    Net_Api_Close           = 1,
+    Net_Api_Accept          = 2,
+    Net_Api_Bind            = 3,
+    Net_Api_Listen          = 4,
+    Net_Api_Connect         = 5,
+    Net_Api_Poll            = 6,
+    Net_Api_SetSockOpt      = 7,
+    Net_Api_GetSockOpt      = 8,
+    Net_Api_Recv            = 9,
+    Net_Api_RecvFrom        = 10,
+    Net_Api_Send            = 11,
+    Net_Api_SendTo          = 12,
+    Net_Api_GetAddrInfo     = 13,
+    Net_Api_FreeAddrInfo    = 14,
+    Net_Api_Fcntl           = 15,
 };
 
 struct Net_SocketParameters
@@ -165,7 +170,10 @@ struct Net_FcntlParameters
 {
     int32_t fd;
     int32_t cmd;
-    va_list args;
+
+    // fcntl() typically takes variable arguments, but the Nordic sockets are
+    // limited to a single 32-bit integer argument in their handling anyway
+    int32_t args;
 };
 
 static inline int32_t Net_Socket(int32_t family, int32_t type, int32_t proto)
@@ -176,7 +184,7 @@ static inline int32_t Net_Socket(int32_t family, int32_t type, int32_t proto)
         .proto = proto
     };
 
-    return Call(SecureService_Net, Net_Apis_Socket, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_Socket, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_Close(int32_t fd)
@@ -185,7 +193,7 @@ static inline int32_t Net_Close(int32_t fd)
         .fd = fd
     };
 
-    return Call(SecureService_Net, Net_Apis_Close, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_Close, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_Accept(int32_t fd, struct sockaddr *addr, uint32_t *addrlen)
@@ -196,7 +204,7 @@ static inline int32_t Net_Accept(int32_t fd, struct sockaddr *addr, uint32_t *ad
         .addrlen = addrlen
     };
 
-    return Call(SecureService_Net, Net_Apis_Accept, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_Accept, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_Bind(int32_t fd, const struct sockaddr *addr, uint32_t addrlen)
@@ -207,7 +215,7 @@ static inline int32_t Net_Bind(int32_t fd, const struct sockaddr *addr, uint32_t
         .addrlen = addrlen
     };
 
-    return Call(SecureService_Net, Net_Apis_Bind, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_Bind, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_Listen(int32_t fd, int32_t backlog)
@@ -217,7 +225,7 @@ static inline int32_t Net_Listen(int32_t fd, int32_t backlog)
         .backlog = backlog
     };
 
-    return Call(SecureService_Net, Net_Apis_Listen, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_Listen, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_Connect(int32_t fd, const struct sockaddr *addr, uint32_t addrlen)
@@ -228,7 +236,7 @@ static inline int32_t Net_Connect(int32_t fd, const struct sockaddr *addr, uint3
         .addrlen = addrlen
     };
 
-    return Call(SecureService_Net, Net_Apis_Connect, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_Connect, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_Poll(struct pollfd *fds, int32_t nfds, int32_t timeout)
@@ -239,7 +247,7 @@ static inline int32_t Net_Poll(struct pollfd *fds, int32_t nfds, int32_t timeout
         .timeout = timeout
     };
 
-    return Call(SecureService_Net, Net_Apis_Poll, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_Poll, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_SetSockOpt(int32_t fd, int32_t level, int32_t optname, const void *optval, uint32_t optlen)
@@ -252,7 +260,7 @@ static inline int32_t Net_SetSockOpt(int32_t fd, int32_t level, int32_t optname,
         .optlen = optlen
     };
 
-    return Call(SecureService_Net, Net_Apis_SetSockOpt, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_SetSockOpt, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_GetSockOpt(int32_t fd, int32_t level, int32_t optname, void *optval, uint32_t *optlen)
@@ -265,7 +273,7 @@ static inline int32_t Net_GetSockOpt(int32_t fd, int32_t level, int32_t optname,
         .optlen = optlen
     };
 
-    return Call(SecureService_Net, Net_Apis_GetSockOpt, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_GetSockOpt, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_Recv(int32_t fd, void *buf, uint32_t max_len, int32_t flags)
@@ -277,7 +285,7 @@ static inline int32_t Net_Recv(int32_t fd, void *buf, uint32_t max_len, int32_t 
         .flags = flags
     };
 
-    return Call(SecureService_Net, Net_Apis_Recv, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_Recv, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_RecvFrom(int32_t fd, void *buf, int16_t len, int16_t flags, struct sockaddr *from, uint32_t *fromlen)
@@ -291,7 +299,7 @@ static inline int32_t Net_RecvFrom(int32_t fd, void *buf, int16_t len, int16_t f
         .fromlen = fromlen
     };
 
-    return Call(SecureService_Net, Net_Apis_RecvFrom, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_RecvFrom, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_Send(int32_t fd, const void *buf, uint32_t len, int32_t flags)
@@ -303,7 +311,7 @@ static inline int32_t Net_Send(int32_t fd, const void *buf, uint32_t len, int32_
         .flags = flags
     };
 
-    return Call(SecureService_Net, Net_Apis_Send, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_Send, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_SendTo(int32_t fd, const void *buf, uint32_t len, int32_t flags, const struct sockaddr *to, uint32_t tolen)
@@ -317,7 +325,7 @@ static inline int32_t Net_SendTo(int32_t fd, const void *buf, uint32_t len, int3
         .tolen = tolen
     };
 
-    return Call(SecureService_Net, Net_Apis_SendTo, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_SendTo, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_GetAddrInfo(const char *node, const char *service, const struct addrinfo *hints, uint32_t reslen, struct addrinfo **res)
@@ -330,7 +338,7 @@ static inline int32_t Net_GetAddrInfo(const char *node, const char *service, con
         .res = res
     };
 
-    return Call(SecureService_Net, Net_Apis_GetAddrInfo, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_GetAddrInfo, &parameters, sizeof(parameters));
 }
 
 static inline int32_t Net_FreeAddrInfo(struct addrinfo *root)
@@ -339,10 +347,10 @@ static inline int32_t Net_FreeAddrInfo(struct addrinfo *root)
         .root = root
     };
 
-    return Call(SecureService_Net, Net_Apis_FreeAddrInfo, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_FreeAddrInfo, &parameters, sizeof(parameters));
 }
 
-static inline int32_t Net_Fcntl(int32_t fd, int32_t cmd, va_list args)
+static inline int32_t Net_Fcntl(int32_t fd, int32_t cmd, int32_t args)
 {
     struct Net_FcntlParameters parameters = {
         .fd = fd,
@@ -350,38 +358,42 @@ static inline int32_t Net_Fcntl(int32_t fd, int32_t cmd, va_list args)
         .args = args
     };
 
-    return Call(SecureService_Net, Net_Apis_Fcntl, &parameters, sizeof(parameters));
+    return CallSecureService(SecureService_Net, Net_Api_Fcntl, &parameters, sizeof(parameters));
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef __cplusplus
 #include <utility>
 
 namespace NimbeLink::Sdk::SecureServices::Net
 {
-    struct _Apis
+    struct _Api
     {
         enum _E
         {
-            Socket          = Net_Apis_Socket,
-            Close           = Net_Apis_Close,
-            Accept          = Net_Apis_Accept,
-            Bind            = Net_Apis_Bind,
-            Listen          = Net_Apis_Listen,
-            Connect         = Net_Apis_Connect,
-            Poll            = Net_Apis_Poll,
-            SetSockOpt      = Net_Apis_SetSockOpt,
-            GetSockOpt      = Net_Apis_GetSockOpt,
-            Recv            = Net_Apis_Recv,
-            RecvFrom        = Net_Apis_RecvFrom,
-            Send            = Net_Apis_Send,
-            SendTo          = Net_Apis_SendTo,
-            GetAddrInfo     = Net_Apis_GetAddrInfo,
-            FreeAddrInfo    = Net_Apis_FreeAddrInfo,
-            Fcntl           = Net_Apis_Fcntl,
+            Socket          = Net_Api_Socket,
+            Close           = Net_Api_Close,
+            Accept          = Net_Api_Accept,
+            Bind            = Net_Api_Bind,
+            Listen          = Net_Api_Listen,
+            Connect         = Net_Api_Connect,
+            Poll            = Net_Api_Poll,
+            SetSockOpt      = Net_Api_SetSockOpt,
+            GetSockOpt      = Net_Api_GetSockOpt,
+            Recv            = Net_Api_Recv,
+            RecvFrom        = Net_Api_RecvFrom,
+            Send            = Net_Api_Send,
+            SendTo          = Net_Api_SendTo,
+            GetAddrInfo     = Net_Api_GetAddrInfo,
+            FreeAddrInfo    = Net_Api_FreeAddrInfo,
+            Fcntl           = Net_Api_Fcntl,
         };
     };
 
-    using Apis = _Apis::_E;
+    using Api = _Api::_E;
 
     using SocketParameters          = Net_SocketParameters;
     using CloseParameters           = Net_CloseParameters;

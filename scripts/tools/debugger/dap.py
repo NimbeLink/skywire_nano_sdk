@@ -46,6 +46,17 @@ class Dap:
         else:
             self.api.connect_to_emu_with_snr(serial_number = serialNumber)
 
+    def __del__(self):
+        """Deletes a DAP
+
+        :param self:
+            Self
+
+        :return none:
+        """
+
+        self.api.close()
+
     def read(self, port, register):
         """Reads from an address in an access port
 

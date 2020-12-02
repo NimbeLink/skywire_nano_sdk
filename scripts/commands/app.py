@@ -16,35 +16,29 @@ import os
 import platform
 import subprocess
 
-from commands.skywire import SkywireCommand
+from commands.command import Command
 from tools.debugger.ctrlAp import CtrlAp
 from tools.debugger.mailbox import Mailbox
 from tools.debugger.uicr import Uicr
 
-class SkywireAppCommand(SkywireCommand):
+class AppCommand(Command):
     """A command for communicating with Skywire Nano application firmware
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         """Creates a new app command
 
         :param self:
             Self
-        :param *args:
-            Positional arguments
-        :param **kwargs:
-            Keyword arguments
 
         :return none:
         """
 
         super().__init__(
-            *args,
-            **kwargs,
             name = "app",
             needUsb = True,
             help = "communicates with Skywire Nano application firmware",
-            about = [
+            description = [
                 "This tool will attempt to communicate with a Nano."
             ]
         )
@@ -60,12 +54,24 @@ class SkywireAppCommand(SkywireCommand):
         :return none:
         """
 
+        # Add an argument for pinging the device
+        parser.add_argument(
+            "-p",
+            "--ping",
+            dest = "ping",
+            action = "count",
+            default = 0,
+            required = False,
+            help = "Ping the connected device"
+        )
+
         # Add an argument for converting the device
         parser.add_argument(
             "-c",
             "--convert",
             dest = "convert",
             action = "count",
+            default = 0,
             required = False,
             help = "Convert the device to a flash-able setup"
         )
@@ -105,13 +111,24 @@ class SkywireAppCommand(SkywireCommand):
 
             uicr.enableApProtect(secure = secure)
 
+            del uicr
+
         mailbox = Mailbox(ctrlAp = CtrlAp())
+
+        # If they want to ping, do so
+        if args.ping > 0:
+            pinged = mailbox.ping()
+
+            if pinged:
+                print("Pinged!")
+            else:
+                print("Failed to ping device")
 
         # If they want to start a conversion, do so
         if args.convert > 0:
             converted = mailbox.convert()
 
             if converted:
-                print("Unit converted")
+                print("Device converted")
             else:
-                print("Failed to convert unit")
+                print("Failed to convert device")

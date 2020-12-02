@@ -1,5 +1,5 @@
 /**
- * © NimbeLink Corp. 2020
+ * (C) NimbeLink Corp. 2020
  *
  * All rights reserved except as explicitly granted in the license agreement
  * between NimbeLink Corp. and the designated licensee.  No other use or
@@ -8,29 +8,36 @@
  * portions are excluded from the preceding copyright notice of NimbeLink Corp.
  */
 
-#include <nimbelink/skywire_nano.dtsi>
-
 &flash0 {
     partitions {
+        // This is the 'primary' image slot that contains running application
+        // firmware
+        //
+        // This is the slot that all application firmware will be built and
+        // linked against.
         slot0_ns_partition: partition@b0000 {
             label = "image-2";
-            reg = <0x000b0000 0x20000>;
+            reg = <0x000b0000 0x28000>;
         };
 
-        slot1_ns_partition: partition@d0000 {
+        // This is the 'secondary' -- or 'swap' -- image slot that can contain
+        // an application image that has either will be swapped in by the boot
+        // loader -- in the event of a firmware update taking place -- or
+        // swapped out -- in the event of a failed firmware update.
+        slot1_ns_partition: partition@d8000 {
             label = "image-3";
-            reg = <0x000d0000 0x20000>;
+            reg = <0x000d8000 0x28000>;
         };
     };
 };
 
 / {
-    // SRAM allocated to the widget
-    sram0_widget: memory@20000000 {
+    // SRAM allocated to the app
+    sram0_app: memory@20000000 {
         reg = <0x20000000 DT_SIZE_K(64)>;
     };
 
     aliases {
-        widget-ram = &sram0;
+        app-ram = &sram0;
     };
 };

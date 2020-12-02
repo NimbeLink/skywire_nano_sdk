@@ -32,9 +32,6 @@ static at_cmd_handler_t handlers[1] = {NULL, };
 // A semaphore for using the callback storage
 static K_SEM_DEFINE(handlerSemaphore, 1, 1);
 
-// Work item for handling URC reading and distribution
-static struct k_work urcWork;
-
 /**
  * \brief Handles an incoming URC notification from the Secure stack
  *
@@ -42,43 +39,13 @@ static struct k_work urcWork;
  *  were an interrupt, so we will pass the actual handling of reading the URCs
  *  and distributing them to our subscribers off to our work item.
  *
- * \param none
+ * \param *buf
+ *      The URC
  *
  * \return none
  */
-static void UrcCallback(void)
+static void UrcCallback(const char *buf)
 {
-    // We have pending URCs, so schedule our handler
-    k_work_submit(&urcWork);
-}
-
-/**
- * \brief Handles distributing URCs to our subscribers
- *
- * \param *work
- *      Our work
- *
- * \return none
- */
-static void HandleUrcs(struct k_work *work)
-{
-    (void)work;
-
-    char buf[CONFIG_AT_CMD_RESPONSE_MAX_LEN + 1];
-    uint32_t urcLength;
-
-    int32_t result = At_ReadUrc(
-        buf,
-        sizeof(buf),
-        &urcLength
-    );
-
-    // If there aren't any URCs left, move on
-    if ((result != 0) || (urcLength < 1))
-    {
-        return;
-    }
-
     // Distribute the URC
     for (size_t i = 0; i < (sizeof(handlers)/sizeof(handlers[0])); i++)
     {
@@ -91,9 +58,6 @@ static void HandleUrcs(struct k_work *work)
 
         k_sem_give(&handlerSemaphore);
     }
-
-    // There might be more URCs, so reschedule our work
-    k_work_submit(&urcWork);
 }
 
 /**
@@ -110,9 +74,6 @@ static void HandleUrcs(struct k_work *work)
  */
 int at_cmd_init(void)
 {
-    // Make sure our work is usable before subscribing to URCs
-    k_work_init(&urcWork, HandleUrcs);
-
     // Subscribe to the Secure stack's URC notifications
     At_SubscribeUrcs(UrcCallback);
 

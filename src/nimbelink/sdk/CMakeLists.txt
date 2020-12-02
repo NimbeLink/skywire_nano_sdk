@@ -12,39 +12,43 @@
  # portions are excluded from the preceding copyright notice of NimbeLink Corp.
  ##
 
-add_subdirectory(secure_services)
+# If the SDK is being used, include the relevant sources
+if (CONFIG_NIMBELINK_SDK)
+    # The SDK will always use Secure Services
+    add_subdirectory(secure_services)
 
-# Always include the peripheral request collector
-zephyr_sources(
-    peripheral_requests.c
-)
+    # Always include the peripheral request collector
+    zephyr_sources(peripheral_requests.c)
 
-# If using the auto-validation of the image, include that
-if (CONFIG_AUTO_IMAGE_VALIDATION)
-    zephyr_sources(
-        image_valid.c
-    )
-endif()
+    # If using the auto-validation of the image, include that
+    if (CONFIG_AUTO_IMAGE_VALIDATION)
+        zephyr_sources(image_valid.c)
+    endif()
 
-# If using NimbeLink's Secure Services for offloading socket operations,
-# include that
-if (CONFIG_NIMBELINK_SOCKETS)
-    zephyr_sources(
-        nl_sockets.c
-    )
-endif()
+    # If using NimbeLink's Non-Secure reboot handling, include that
+    if (CONFIG_NIMBELINK_REBOOT)
+        zephyr_sources(nl_reboot.c)
+    endif()
 
-# If using NimbeLink's Secure Services for offloading AT functionality, include
-# that
-if (CONFIG_NIMBELINK_AT_CMD)
-    zephyr_sources(
-        nl_at_cmd.c
-    )
-endif()
+    # If we're providing the fatal error handling, include that
+    if (CONFIG_ABORT_ON_FATAL_ERROR)
+        zephyr_sources(nl_fatal_error.c)
+    endif()
 
-# If using NimbeLink's Secure Services for offloading FOTA, include that
-if (CONFIG_NIMBELINK_FOTA_DOWNLOAD)
-    zephyr_sources(
-        nl_fota_download.c
-    )
+    # If using NimbeLink's Secure Services for offloading socket operations,
+    # include that
+    if (CONFIG_NIMBELINK_SOCKETS)
+        zephyr_sources(nl_sockets.c)
+    endif()
+
+    # If using NimbeLink's Secure Services for offloading AT functionality,
+    # include that
+    if (CONFIG_NIMBELINK_AT_CMD)
+        zephyr_sources(nl_at_cmd.c)
+    endif()
+
+    # If using NimbeLink's Secure Services for offloading FOTA, include that
+    if (CONFIG_NIMBELINK_FOTA_DOWNLOAD)
+        zephyr_sources(nl_fota_download.c)
+    endif()
 endif()

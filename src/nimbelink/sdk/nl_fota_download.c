@@ -21,7 +21,7 @@
 #include <at_notif.h>
 #include <net/fota_download.h>
 
-#include "nimbelink/sdk/at/cme.h"
+#include "nimbelink/sdk/cell/at/cme.h"
 
 // A callback to invoke with events
 static fota_download_callback_t callback = NULL;

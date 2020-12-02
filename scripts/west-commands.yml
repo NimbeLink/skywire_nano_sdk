@@ -1,20 +1,8 @@
 # Good evening...
 
 west-commands:
-    -   file: scripts/__west__.py
+    -   file: scripts/__main__.py
         commands:
-            -   name:   skywire-app
-                class:  SkywireAppCommand
-                help:   communicates with Skywire Nano application firmware
-
-            -   name:   skywire-dfu
-                class:  SkywireDfuCommand
-                help:   generates a Skywire Nano DFU-able image",
-
-            -   name:   skywire-flash
-                class:  SkywireFlashCommand
-                help:   flashes Skywire Nano devices
-
-            -   name:   skywire-update
-                class:  SkywireUpdateCommand
-                help:   updates Skywire Nano devices
+            -   name:   skywire
+                class:  SkywireCommand
+                help:   commands for working with a Skywire Nano

@@ -25,8 +25,11 @@ class Dfu:
         """A target image that can be updated via DFU
         """
 
-        Application = 0
-        Widget = 1
+        Stack       = 0
+        Application = 1
+        Modem       = 2
+        Key         = 3
+        Partition   = 4
 
         @staticmethod
         def validate(type):
@@ -42,8 +45,11 @@ class Dfu:
             """
 
             types = [
+                Dfu.Type.Stack,
                 Dfu.Type.Application,
-                Dfu.Type.Widget,
+                Dfu.Type.Modem,
+                Dfu.Type.Key,
+                Dfu.Type.Partition,
             ]
 
             if type not in types:
@@ -69,26 +75,30 @@ class Dfu:
         :return none:
         """
 
+        # Get the file's raw binary data
+        with open(file, "rb") as openFile:
+            rawData = openFile.read()
+
         # Add magic
-        data = struct.pack("I", 0xecce1347)
+        headerData = struct.pack("I", 0xecce1347)
 
         # Add the type
-        data += struct.pack("I", type)
+        headerData += struct.pack("I", type)
+
+        # Add the length
+        headerData += struct.pack("I", len(rawData))
 
         # Get how much header space we have left to generate
-        padWords = int((Dfu.HeaderSize - len(data)) / 4)
+        padWords = int((Dfu.HeaderSize - len(headerData)) / 4)
 
         # Pad the rest of the header
         for i in range(padWords):
-            data += struct.pack("I", 0)
-
-        # Add in the file's raw binary data
-        with open(file, "rb") as openFile:
-            data += openFile.read()
+            headerData += struct.pack("I", 0)
 
         # Write out the contents
         #
         # We'll do this after pulling the file's contents in the event the
         # caller wants the output file to replace the input file.
         with open(outputFile, "wb") as output:
-            output.write(data)
+            output.write(headerData)
+            output.write(rawData)

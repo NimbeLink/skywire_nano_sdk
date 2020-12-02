@@ -128,12 +128,12 @@ enum CmsErrorType
 #ifdef __cplusplus
 #include <cstdbool>
 
-namespace NimbeLink::Sdk::At
+namespace NimbeLink::Sdk::Cell::At
 {
     class CmsError;
 }
 
-class NimbeLink::Sdk::At::CmsError
+class NimbeLink::Sdk::Cell::At::CmsError
 {
     public:
         enum Type

@@ -58,12 +58,6 @@ static int RequestPeripherals(struct device *device)
     #   if CONFIG_REQUEST_NON_SECURE_DPPIC
         NRF_DPPIC_NS_BASE,
     #   endif
-    #   if CONFIG_REQUEST_NON_SECURE_EGU_1
-        NRF_EGU1_NS_BASE,
-    #   endif
-    #   if CONFIG_REQUEST_NON_SECURE_EGU_2
-        NRF_EGU2_NS_BASE,
-    #   endif
     #   if CONFIG_REQUEST_NON_SECURE_EGU_3
         NRF_EGU3_NS_BASE,
     #   endif
@@ -110,5 +104,6 @@ static int RequestPeripherals(struct device *device)
 
 // Run our access request handling during system initialization, as early as
 // possible (to beat any driver initializations that depend on access to the
-// peripherals)
-SYS_INIT(RequestPeripherals, PRE_KERNEL_1, 0);
+// peripherals). We need to make sure our secure services are set up first,
+// however, so we'll let that go before us.
+SYS_INIT(RequestPeripherals, PRE_KERNEL_1, 1);
