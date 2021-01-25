@@ -26,7 +26,7 @@
  * \return int
  *      A failure occurred while marking the image as valid
  */
-static int MarkImageValid(struct device *device)
+static int MarkImageValid(const struct device *device)
 {
     (void)device;
 
