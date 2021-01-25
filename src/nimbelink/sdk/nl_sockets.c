@@ -21,14 +21,24 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#include <bsd_limits.h>
 #include <device.h>
 #include <init.h>
 #include <net/socket.h>
 #include <net/socket_offload.h>
+#include <sockets_internal.h>
 #include <zephyr.h>
 
 #include "nimbelink/sdk/secure_services/kernel.h"
 #include "nimbelink/sdk/secure_services/net.h"
+
+#define FD_TO_OBJ(fd)       ((void *)(fd + 1))
+#define OBJ_TO_FD(context)  (((int)context) - 1)
+
+/**
+ * \brief Chicken, meet egg
+ */
+static const struct socket_op_vtable nl_socket_op_vtable;
 
 static int nl_socket_socket(int family, int type, int proto)
 {
@@ -46,8 +56,10 @@ static int nl_socket_socket(int family, int type, int proto)
     return result;
 }
 
-static int nl_socket_close(int fd)
+static int nl_socket_close(void *context)
 {
+    int fd = OBJ_TO_FD(context);
+
     int result = Net_Close(
         fd
     );
@@ -60,8 +72,10 @@ static int nl_socket_close(int fd)
     return result;
 }
 
-static int nl_socket_accept(int fd, struct sockaddr *addr, socklen_t *addrlen)
+static int nl_socket_accept(void *context, struct sockaddr *addr, socklen_t *addrlen)
 {
+    int fd = OBJ_TO_FD(context);
+
     int result = Net_Accept(
         fd,
         addr,
@@ -76,8 +90,10 @@ static int nl_socket_accept(int fd, struct sockaddr *addr, socklen_t *addrlen)
     return result;
 }
 
-static int nl_socket_bind(int fd, const struct sockaddr *addr, socklen_t addrlen)
+static int nl_socket_bind(void *context, const struct sockaddr *addr, socklen_t addrlen)
 {
+    int fd = OBJ_TO_FD(context);
+
     int result = Net_Bind(
         fd,
         addr,
@@ -92,8 +108,10 @@ static int nl_socket_bind(int fd, const struct sockaddr *addr, socklen_t addrlen
     return result;
 }
 
-static int nl_socket_listen(int fd, int backlog)
+static int nl_socket_listen(void *context, int backlog)
 {
+    int fd = OBJ_TO_FD(context);
+
     int result = Net_Listen(
         fd,
         backlog
@@ -107,8 +125,10 @@ static int nl_socket_listen(int fd, int backlog)
     return result;
 }
 
-static int nl_socket_connect(int fd, const struct sockaddr *addr, socklen_t addrlen)
+static int nl_socket_connect(void *context, const struct sockaddr *addr, socklen_t addrlen)
 {
+    int fd = OBJ_TO_FD(context);
+
     int result = Net_Connect(
         fd,
         addr,
@@ -125,8 +145,61 @@ static int nl_socket_connect(int fd, const struct sockaddr *addr, socklen_t addr
 
 static inline int nl_socket_poll(struct pollfd *fds, int nfds, int timeout)
 {
+    struct pollfd _fds[BSD_MAX_SOCKET_COUNT] = { 0 };
+
+    int changeCount = 0;
+
+    for (int i = 0; i < nfds; i++)
+    {
+        _fds[i].events = 0;
+        fds[i].revents = 0;
+
+        // Per POSIX, negative file descriptors are just ignored, so if this is
+        // negative, ignore it
+        if (fds[i].fd < 0)
+        {
+            _fds[i].fd = fds[i].fd;
+            continue;
+        }
+
+        void *context = z_get_fd_obj(
+            fds[i].fd,
+            (const struct fd_op_vtable *)&nl_socket_op_vtable,
+            ENOTSUP
+        );
+
+        // If we found the object, great, note its translated file descriptor
+        if (context != NULL)
+        {
+            _fds[i].fd = OBJ_TO_FD(context);
+        }
+        // Else, note that's an invalid file descriptor
+        else
+        {
+            fds[i].revents = POLLNVAL;
+            changeCount++;
+        }
+
+        if (fds[i].events & POLLIN)
+        {
+            _fds[i].events |= POLLIN;
+        }
+
+        if (fds[i].events & POLLOUT)
+        {
+            _fds[i].events |= POLLOUT;
+        }
+    }
+
+    // If things changed above, that means not all of the file descriptors were
+    // valid
+    if (changeCount > 0)
+    {
+        return changeCount;
+    }
+
     int result = Net_Poll(
-        fds,
+        _fds,
         nfds,
         timeout
     );
@@ -136,11 +209,18 @@ static inline int nl_socket_poll(struct pollfd *fds, int nfds, int timeout)
         Kernel_Errno();
     }
 
+    for (int i = 0; i < nfds; i++)
+    {
+        fds[i].revents = _fds[i].revents;
+    }
+
     return result;
 }
 
-static int nl_socket_setsockopt(int fd, int level, int optname, const void *optval, socklen_t optlen)
+static int nl_socket_setsockopt(void *context, int level, int optname, const void *optval, socklen_t optlen)
 {
+    int fd = OBJ_TO_FD(context);
+
     int result = Net_SetSockOpt(
         fd,
         level,
@@ -157,8 +237,10 @@ static int nl_socket_setsockopt(int fd, int level, int optname, const void *optv
     return result;
 }
 
-static int nl_socket_getsockopt(int fd, int level, int optname, void *optval, socklen_t *optlen)
+static int nl_socket_getsockopt(void *context, int level, int optname, void *optval, socklen_t *optlen)
 {
+    int fd = OBJ_TO_FD(context);
+
     int result = Net_GetSockOpt(
         fd,
         level,
@@ -175,25 +257,10 @@ static int nl_socket_getsockopt(int fd, int level, int optname, void *optval, so
     return result;
 }
 
-static ssize_t nl_socket_recv(int fd, void *buf, size_t max_len, int flags)
+static ssize_t nl_socket_recvfrom(void *context, void *buf, unsigned int len, int flags, struct sockaddr *from, socklen_t *fromlen)
 {
-    int result = Net_Recv(
-        fd,
-        buf,
-        max_len,
-        flags
-    );
+    int fd = OBJ_TO_FD(context);
 
-    if (result < 0)
-    {
-        Kernel_Errno();
-    }
-
-    return result;
-}
-
-static ssize_t nl_socket_recvfrom(int fd, void *buf, short int len, short int flags, struct sockaddr *from, socklen_t *fromlen)
-{
     int result = Net_RecvFrom(
         fd,
         buf,
@@ -211,25 +278,15 @@ static ssize_t nl_socket_recvfrom(int fd, void *buf, short int len, short int fl
     return result;
 }
 
-static ssize_t nl_socket_send(int fd, const void *buf, size_t len, int flags)
+static ssize_t nl_socket_read(void *context, void *buffer, size_t count)
 {
-    int result = Net_Send(
-        fd,
-        buf,
-        len,
-        flags
-    );
-
-    if (result < 0)
-    {
-        Kernel_Errno();
-    }
-
-    return result;
+    return nl_socket_recvfrom(context, buffer, count, 0, NULL, 0);
 }
 
-static ssize_t nl_socket_sendto(int fd, const void *buf, size_t len, int flags, const struct sockaddr *to, socklen_t tolen)
+static ssize_t nl_socket_sendto(void *context, const void *buf, size_t len, int flags, const struct sockaddr *to, socklen_t tolen)
 {
+    int fd = OBJ_TO_FD(context);
+
     int result = Net_SendTo(
         fd,
         buf,
@@ -245,6 +302,94 @@ static ssize_t nl_socket_sendto(int fd, const void *buf, size_t len, int flags, 
     }
 
     return result;
+}
+
+static ssize_t nl_socket_write(void *context, const void *buffer, size_t count)
+{
+    return nl_socket_sendto(context, buffer, count, 0, NULL, 0);
+}
+
+static ssize_t nl_socket_sendmsg(void *context, const struct msghdr *msg, int flags)
+{
+    static K_MUTEX_DEFINE(lock);
+    static uint8_t buffer[128];
+
+    if (msg == NULL)
+    {
+        errno = EINVAL;
+
+        return -1;
+    }
+
+    ssize_t length = 0;
+
+    // Try to reduce number of `sendto` calls by copying data if they fit into a
+    // single buffer
+    for (int i = 0; i < msg->msg_iovlen; i++)
+    {
+        length += msg->msg_iov[i].iov_len;
+    }
+
+    if (length <= sizeof(buffer))
+    {
+        k_mutex_lock(&lock, K_FOREVER);
+
+        length = 0;
+
+        for (int i = 0; i < msg->msg_iovlen; i++)
+        {
+            memcpy(
+                buffer + length,
+                msg->msg_iov[i].iov_base,
+                msg->msg_iov[i].iov_len
+            );
+
+            length += msg->msg_iov[i].iov_len;
+        }
+
+        int result = nl_socket_sendto(
+            context,
+            buffer,
+            length,
+            flags,
+            msg->msg_name,
+            msg->msg_namelen
+        );
+
+        k_mutex_unlock(&lock);
+
+        return result;
+    }
+
+    length = 0;
+
+    // The data won't fit into intermediate buffer, so send the buffers
+    // separately
+    for (int i = 0; i < msg->msg_iovlen; i++)
+    {
+        if (msg->msg_iov[i].iov_len == 0)
+        {
+            continue;
+        }
+
+        int result = nl_socket_sendto(
+            context,
+            msg->msg_iov[i].iov_base,
+            msg->msg_iov[i].iov_len,
+            flags,
+            msg->msg_name,
+            msg->msg_namelen
+        );
+
+        if (result < 0)
+        {
+            return result;
+        }
+
+        length += result;
+    }
+
+    return length;
 }
 
 static void nl_socket_freeaddrinfo(struct addrinfo *root)
@@ -406,31 +551,108 @@ static int nl_socket_fcntl(int fd, int cmd, va_list args)
     return result;
 }
 
-static const struct socket_offload nl_socket_ops = {
-    .socket = nl_socket_socket,
-    .close = nl_socket_close,
-    .accept = nl_socket_accept,
+static int nl_socket_ioctl(void *context, unsigned int request, va_list args)
+{
+    int fd = OBJ_TO_FD(context);
+
+    switch (request)
+    {
+        case ZFD_IOCTL_POLL_PREPARE:
+            return -EXDEV;
+
+        case ZFD_IOCTL_POLL_UPDATE:
+            return -EOPNOTSUPP;
+
+        case ZFD_IOCTL_POLL_OFFLOAD:
+        {
+            struct zsock_pollfd *fds = va_arg(args, struct zsock_pollfd *);
+            int fdCount = va_arg(args, int);
+            int timeout = va_arg(args, int);
+
+            return nl_socket_poll(fds, fdCount, timeout);
+        }
+
+        // In Zephyr, fcntl() is apparently just an alias of ioctl()
+        default:
+            return nl_socket_fcntl(fd, request, args);
+    }
+}
+
+static const struct socket_op_vtable nl_socket_op_vtable = {
+    .fd_vtable = {
+        .read = nl_socket_read,
+        .write = nl_socket_write,
+        .close = nl_socket_close,
+        .ioctl = nl_socket_ioctl,
+    },
     .bind = nl_socket_bind,
-    .listen = nl_socket_listen,
     .connect = nl_socket_connect,
-    .poll = nl_socket_poll,
-    .setsockopt = nl_socket_setsockopt,
-    .getsockopt = nl_socket_getsockopt,
-    .recv = nl_socket_recv,
-    .recvfrom = nl_socket_recvfrom,
-    .send = nl_socket_send,
+    .listen = nl_socket_listen,
+    .accept = nl_socket_accept,
     .sendto = nl_socket_sendto,
-    .getaddrinfo = nl_socket_getaddrinfo,
-    .freeaddrinfo = nl_socket_freeaddrinfo,
-    .fcntl = nl_socket_fcntl,
+    .sendmsg = nl_socket_sendmsg,
+    .recvfrom = nl_socket_recvfrom,
+    .getsockopt = nl_socket_getsockopt,
+    .setsockopt = nl_socket_setsockopt,
 };
 
-static int nl_socket_init(struct device *arg)
+static bool nl_socket_is_supported(int family, int type, int proto)
+{
+    if (IS_ENABLED(CONFIG_NET_SOCKETS_OFFLOAD_TLS))
+    {
+        return true;
+    }
+
+    if (((proto >= IPPROTO_TLS_1_0) && (proto <= IPPROTO_TLS_1_2)) ||
+        ((proto >= IPPROTO_DTLS_1_0) && (proto <= IPPROTO_DTLS_1_2)))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+static int nl_socket_create(int family, int type, int proto)
+{
+    int fd = z_reserve_fd();
+
+    if (fd < 0)
+    {
+        return -1;
+    }
+
+    int sd = nl_socket_socket(family, type, proto);
+
+    if (sd < 0)
+    {
+        z_free_fd(fd);
+
+        return -1;
+    }
+
+    z_finalize_fd(fd, FD_TO_OBJ(sd), (const struct fd_op_vtable *)&nl_socket_op_vtable);
+
+    return fd;
+}
+
+NET_SOCKET_REGISTER(
+    nl_socket,
+    AF_UNSPEC,
+    nl_socket_is_supported,
+    nl_socket_create
+);
+
+static int nl_socket_init(const struct device *arg)
 {
     (void)arg;
 
     return 0;
 }
+
+static const struct socket_dns_offload nl_socket_dns_ops = {
+    .getaddrinfo = nl_socket_getaddrinfo,
+    .freeaddrinfo = nl_socket_freeaddrinfo
+};
 
 static struct nl_socket_iface_data {
     struct net_if *iface;
@@ -442,7 +664,7 @@ static void nl_socket_iface_init(struct net_if *iface)
 
     iface->if_dev->offloaded = true;
 
-    socket_offload_register(&nl_socket_ops);
+    socket_offload_dns_register(&nl_socket_dns_ops);
 }
 
 static struct net_if_api nl_if_api = {
@@ -453,6 +675,7 @@ NET_DEVICE_OFFLOAD_INIT(
     nl_socket,
     "nl_socket",
     nl_socket_init,
+    device_pm_control_nop,
     &nl_socket_iface_data,
     NULL,
     0,
