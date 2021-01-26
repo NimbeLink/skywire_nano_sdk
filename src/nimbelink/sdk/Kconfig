@@ -16,6 +16,7 @@ menuconfig NIMBELINK_SDK
     bool "NimbeLink SDK"
     default n
     depends on !BSD_LIBRARY
+    select ARM_FIRMWARE_USES_SECURE_ENTRY_FUNCS
     help
         Enables building the NimbeLink SDK and its enabled resources.
 
