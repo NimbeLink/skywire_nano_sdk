@@ -408,15 +408,15 @@ static void nl_socket_freeaddrinfo(struct addrinfo *root)
         // Free the current structure
         if (root->ai_addr != NULL)
         {
-            free(root->ai_addr);
+            k_free(root->ai_addr);
         }
 
         if (root->ai_canonname != NULL)
         {
-            free(root->ai_canonname);
+            k_free(root->ai_canonname);
         }
 
-        free(root);
+        k_free(root);
 
         // If we're out of infos now, move on
         if (next == NULL)
@@ -449,7 +449,7 @@ static int nl_socket_getaddrinfo(const char *node, const char *service, const st
     // pointers are explicitly initialized to NULL.
     for (uint32_t i = 0; i < (sizeof(infos)/sizeof(infos[0])); i++)
     {
-        infos[i] = calloc(1, sizeof(struct addrinfo));
+        infos[i] = k_calloc(1, sizeof(struct addrinfo));
 
         if (infos[i] == NULL)
         {
@@ -457,8 +457,8 @@ static int nl_socket_getaddrinfo(const char *node, const char *service, const st
             break;
         }
 
-        infos[i]->ai_addr = calloc(1, sizeof(struct sockaddr));
-        infos[i]->ai_canonname = calloc(1, NET_AI_CANONNAME_MAX_LENGTH + 1);
+        infos[i]->ai_addr = k_calloc(1, sizeof(struct sockaddr));
+        infos[i]->ai_canonname = k_calloc(1, NET_AI_CANONNAME_MAX_LENGTH + 1);
 
         if ((infos[i]->ai_addr == NULL) || (infos[i]->ai_canonname == NULL))
         {
