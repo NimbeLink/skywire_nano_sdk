@@ -429,10 +429,50 @@ static void nl_socket_freeaddrinfo(struct addrinfo *root)
     }
 }
 
+static void free_nl_addrinfo(struct nl_addrinfo *root)
+{
+    // If they didn't provide a valid pointer, ignore this
+    if (root == NULL)
+    {
+        return;
+    }
+
+    while (true)
+    {
+        // Get the next info, if any
+        struct nl_addrinfo *next = root->ai_next;
+
+        // Free the current structure
+        if (root->ai_addr != NULL)
+        {
+            k_free(root->ai_addr);
+        }
+
+        if (root->ai_canonname != NULL)
+        {
+            k_free(root->ai_canonname);
+        }
+
+        k_free(root);
+
+        // If we're out of infos now, move on
+        if (next == NULL)
+        {
+            break;
+        }
+
+        // Note the next info and free it when we come back around
+        root = next;
+    }
+}
+
+#define ADDRINFO_MAX_COUNT      3
+
 static int nl_socket_getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res)
 {
-    // We'll support up to 3 info structures
-    struct addrinfo *infos[3] = {NULL, };
+    // Make stack-based addrinfo structures that we guarantee to be compatible
+    // with our Secure firmware
+    struct nl_addrinfo *infos[ADDRINFO_MAX_COUNT] = {NULL, };
 
     // Innocent until proven guilty
     bool allAllocated = true;
@@ -447,9 +487,14 @@ static int nl_socket_getaddrinfo(const char *node, const char *service, const st
     //
     // We'll also use calloc() instead of malloc() to make sure the various
     // pointers are explicitly initialized to NULL.
-    for (uint32_t i = 0; i < (sizeof(infos)/sizeof(infos[0])); i++)
+    //
+    // Finally, as mentioned above, the calling addrinfo struct might not
+    // actually be standard, so we'll need to allocate the addrinfo container
+    // for both theirs and ours, but everything allocated within that container
+    // can be allocated once and passed around.
+    for (uint32_t i = 0; i < ADDRINFO_MAX_COUNT; i++)
     {
-        infos[i] = k_calloc(1, sizeof(struct addrinfo));
+        infos[i] = k_calloc(1, sizeof(struct nl_addrinfo));
 
         if (infos[i] == NULL)
         {
@@ -470,64 +515,121 @@ static int nl_socket_getaddrinfo(const char *node, const char *service, const st
     // If any of those failed, abort
     if (!allAllocated)
     {
-        nl_socket_freeaddrinfo(infos[0]);
+        for (uint32_t i = 0; i < ADDRINFO_MAX_COUNT; i++)
+        {
+            if (infos[i] == NULL)
+            {
+                break;
+            }
+
+            free_nl_addrinfo(infos[i]);
+        }
 
         return DNS_EAI_MEMORY;
+    }
+
+    // Make a compatible hints structure
+    struct nl_addrinfo _nlHints;
+    struct nl_addrinfo *nlHints = NULL;
+
+    if (hints != NULL)
+    {
+        _nlHints.ai_flags = hints->ai_flags;
+        _nlHints.ai_family = hints->ai_family;
+        _nlHints.ai_socktype = hints->ai_socktype;
+        _nlHints.ai_protocol = hints->ai_protocol;
+        _nlHints.ai_addrlen = hints->ai_addrlen;
+        _nlHints.ai_addr = hints->ai_addr;
+        _nlHints.ai_canonname = hints->ai_canonname;
+
+        // The standard for getaddrinfo() says hints cannot use ai_next, so make
+        // sure we set that ourselves and don't rely on the caller
+        _nlHints.ai_next = NULL;
+
+        nlHints = &_nlHints;
     }
 
     // Make the offloaded API call
     int result = Net_GetAddrInfo(
         node,
         service,
-        hints,
+        nlHints,
         (sizeof(infos)/sizeof(infos[0])),
         infos
     );
 
-    // Assume we won't have to free anything
-    int32_t freeFrom = -1;
+    *res = NULL;
 
-    // If that failed or somehow wasn't filled in, make sure we free all of our
-    // allocated structures
-    if ((result != 0) || (infos[0]->ai_addr == NULL))
+    // If that was successful and we've got structs to pass around
+    if ((result == 0) && (infos[0]->ai_addr != NULL))
     {
-        freeFrom = 0;
+        struct addrinfo **previous = NULL;
 
-        *res = NULL;
-    }
-    else
-    {
-        // We didn't necessarily use all of our info structures, so go back
-        // through and find the last entry and free everything after it
-        for (uint32_t i = 1; i < (sizeof(infos)/sizeof(infos[0])); i++)
+        for (uint32_t i = 0; i < ADDRINFO_MAX_COUNT; i++)
         {
-            // If this structure has a linked next one, keep looking
-            if (infos[i - 1]->ai_next != NULL)
+            // Allocate another structure for their copy of the addrinfo
+            *res = k_calloc(1, sizeof(struct addrinfo));
+
+            // If that failed, we'll free everything and call this a failure
+            if (*res == NULL)
             {
-                continue;
+                result = DNS_EAI_MEMORY;
+                break;
             }
 
-            // This current structure isn't linked to by the previous one, so
-            // we'll free this and everything after
-            freeFrom = i;
+            // If this isn't the first structure we've allocated, link the
+            // previous one to this new one
+            if (previous != NULL)
+            {
+                *previous = *res;
+            }
 
-            break;
+            // In case this isn't our last go-round, note the new addrinfo
+            // structure so we can link to the next one
+            previous = &((*res)->ai_next);
+
+            // We had to use a potentially-incompatible addrinfo structure than
+            // what's defined in the system, so copy everything over to the
+            // calling structure
+            (*res)->ai_flags        = infos[i]->ai_flags;
+            (*res)->ai_family       = infos[i]->ai_family;
+            (*res)->ai_socktype     = infos[i]->ai_socktype;
+            (*res)->ai_protocol     = infos[i]->ai_protocol;
+            (*res)->ai_addrlen      = infos[i]->ai_addrlen;
+            (*res)->ai_addr         = infos[i]->ai_addr;
+            (*res)->ai_canonname    = infos[i]->ai_canonname;
+
+            (*res)->ai_next         = NULL;
+
+            // The external structures now track the sub-structures -- ai_addr
+            // and ai_canonname -- so stop tracking those in our internal
+            // structs
+            infos[i]->ai_addr       = NULL;
+            infos[i]->ai_canonname  = NULL;
+
+            // If this is the last one in the chain, move on
+            if (infos[i]->ai_next == NULL)
+            {
+                break;
+            }
         }
-
-        *res = infos[0];
     }
 
-    // We won't have necessarily linked the structs together, so if we've got
-    // stuff to free, link together the unused structures and let our free-er
-    // iterate through and free them
-    if (freeFrom >= 0)
+    // Free our internal structures
+    for (uint32_t i = 0; i < ADDRINFO_MAX_COUNT; i++)
     {
-        for (uint32_t i = freeFrom + 1; i < (sizeof(infos)/sizeof(infos[0])); i++)
-        {
-            infos[i - 1]->ai_next = infos[i];
-        }
+        // We might have a mix of linked and unlinked structs, so just do them
+        // all one by one
+        infos[i]->ai_next = NULL;
 
-        nl_socket_freeaddrinfo(infos[freeFrom]);
+        free_nl_addrinfo(infos[i]);
+    }
+
+    // If we ended up not successfully passing everything to the caller, also
+    // free any external structures we allocated
+    if (result != 0)
+    {
+        nl_socket_freeaddrinfo(*res);
     }
 
     return result;
