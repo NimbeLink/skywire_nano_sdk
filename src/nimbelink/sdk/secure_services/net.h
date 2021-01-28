@@ -150,13 +150,33 @@ struct Net_SendToParameters
     uint32_t tolen;
 };
 
+/**
+ * \brief A proper POSIX addrinfo struct
+ *
+ *  Zephyr appears to have taken to defining addrinfo as their zsock_addrinfo
+ *  structure in recent versions, which is decidedly *not* what addrinfo
+ *  actually is. As such, to remain compatible with the Skywire Nano stack
+ *  firmware handling, this structure format will be used.
+ */
+struct nl_addrinfo
+{
+    int ai_flags;
+    int ai_family;
+    int ai_socktype;
+    int ai_protocol;
+    socklen_t ai_addrlen;
+    struct sockaddr *ai_addr;
+    char *ai_canonname;
+    struct nl_addrinfo *ai_next;
+};
+
 struct Net_GetAddrInfoParameters
 {
     const char *node;
     const char *service;
-    const struct addrinfo *hints;
+    const struct nl_addrinfo *hints;
     uint32_t reslen;
-    struct addrinfo **res;
+    struct nl_addrinfo **res;
 };
 
 #define NET_AI_CANONNAME_MAX_LENGTH     20
@@ -328,7 +348,7 @@ static inline int32_t Net_SendTo(int32_t fd, const void *buf, uint32_t len, int3
     return CallSecureService(SecureService_Net, Net_Api_SendTo, &parameters, sizeof(parameters));
 }
 
-static inline int32_t Net_GetAddrInfo(const char *node, const char *service, const struct addrinfo *hints, uint32_t reslen, struct addrinfo **res)
+static inline int32_t Net_GetAddrInfo(const char *node, const char *service, const struct nl_addrinfo *hints, uint32_t reslen, struct nl_addrinfo **res)
 {
     struct Net_GetAddrInfoParameters parameters = {
         .node = node,
