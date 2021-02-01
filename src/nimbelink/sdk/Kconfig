@@ -73,4 +73,18 @@ config NIMBELINK_FOTA_DOWNLOAD
     help
         Redirect APIs for the nRF Connect SDK's fota_download library to use
         the NimbeLink Secure stack Secure Services.
+
+# If we're providing FOTA downloads and the download client isn't selected --
+# which is fine, since it's not mandatory for the FOTA download to be offloaded
+# -- we'll need to define a buffer size to keep headers/the compiler satisfied
+if NIMBELINK_FOTA_DOWNLOAD && !DOWNLOAD_CLIENT
+config DOWNLOAD_CLIENT_BUF_SIZE
+    int "Stub-in buffer size"
+    default 2048
+
+config DOWNLOAD_CLIENT_STACK_SIZE
+    int "Stub-in thread stack size"
+    default 1024
+endif
+
 endif
