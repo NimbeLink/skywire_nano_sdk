@@ -16,20 +16,32 @@ import sys
 
 from dualie import Dualie
 
-from commands.app import AppCommand
-from commands.format import FormatCommand
-from commands.update import UpdateCommand
+subCommands = []
+
+try:
+    from commands.app import AppCommand
+    subCommands += [AppCommand()]
+except ImportError:
+    pass
+
+try:
+    from commands.format import FormatCommand
+    subCommands += [FormatCommand()]
+except ImportError:
+    pass
+
+try:
+    from commands.update import UpdateCommand
+    subCommands += [UpdateCommand()]
+except ImportError:
+    pass
 
 # Make a configuration for our 'skywire' command
 anonymousConfig = Dualie.AnonymousConfig(
     name = "skywire",
     isRaw = None,
     description = "provides Skywire commands",
-    subCommands = [
-        AppCommand(),
-        FormatCommand(),
-        UpdateCommand(),
-    ]
+    subCommands = subCommands
 )
 
 # If we're being run from a standard Python context, manually run our command

@@ -54,6 +54,20 @@ class CtrlAp:
 
         self.dap = Dap(*args, **kwargs)
 
+    def readRegister(self, register):
+        """Reads a register value
+
+        :param self:
+            Self
+        :param register:
+            The register to read
+
+        :return Integer:
+            The register's value
+        """
+
+        return self.dap.api.read_access_port_register(self.Port, register)
+
     def _waitAllErased(self):
         """Waits for an erase all operation to finish
 
@@ -70,7 +84,7 @@ class CtrlAp:
         # while
         for i in range(30):
             # Get the erase status
-            status = self.dap.api.read_access_port_register(self.Port, self.Registers.EraseAllStatus)
+            status = self.readRegister(self.Registers.EraseAllStatus)
 
             # If the erase isn't shown as happening on the first go-round, then
             # we probably failed to kick it off
@@ -102,7 +116,7 @@ class CtrlAp:
         self.dap.api.write_access_port_register(self.Port, self.Registers.EraseAll, 0x1)
 
         # Make sure the value gets flushed
-        #self.dap.api.read_access_port_register(self.Port, self.Registers.Reset)
+        self.readRegister(self.Registers.Reset)
 
         return self._waitAllErased()
 
@@ -123,7 +137,7 @@ class CtrlAp:
         self.dap.api.write_access_port_register(self.Port, self.Registers.EraseProtectDisable, key)
 
         # Make sure the value gets flushed
-        self.dap.api.read_access_port_register(self.Port, self.Registers.Reset)
+        self.readRegister(self.Registers.Reset)
 
         return self._waitAllErased()
 
@@ -145,7 +159,7 @@ class CtrlAp:
 
         while True:
             # Get the TX status
-            status = self.dap.api.read_access_port_register(self.Port, self.Registers.MailboxTxStatus)
+            status = self.readRegister(self.Registers.MailboxTxStatus)
 
             # If it's been read, we're done
             if status == 0:
@@ -194,7 +208,7 @@ class CtrlAp:
 
         # If we should, make sure the final value gets flushed
         if flush:
-            self.dap.api.read_access_port_register(self.Port, self.Registers.Reset)
+            self.readRegister(self.Registers.Reset)
 
             # Wait for the value to be read
             if not self.waitMailboxRead(timeout = timeout):
@@ -220,7 +234,7 @@ class CtrlAp:
 
         while True:
             # Get the RX status
-            status = self.dap.api.read_access_port_register(self.Port, self.Registers.MailboxRxStatus)
+            status = self.readRegister(self.Registers.MailboxRxStatus)
 
             # If it's been written to, we're done
             if status != 0:
@@ -265,7 +279,7 @@ class CtrlAp:
             timeout -= (now - start)
 
             # Get the next value
-            value = self.dap.api.read_access_port_register(self.Port, self.Registers.MailboxRxData)
+            value = self.readRegister(self.Registers.MailboxRxData)
 
             values.append(value)
 
@@ -282,7 +296,7 @@ class CtrlAp:
 
         # If the CPU hasn't read our debugger->CPU data, do it for it
         if not self.waitMailboxRead(timeout = 0.0):
-            self.dap.api.read_access_port_register(self.Port, self.Registers.MailboxTxData)
+            self.readRegister(self.Registers.MailboxTxData)
 
     def clearRx(self):
         """Clears the CPU->debugger mailbox buffering
@@ -294,7 +308,7 @@ class CtrlAp:
         """
 
         # Make sure all of our outgoing stuff is flushed
-        self.dap.api.read_access_port_register(self.Port, self.Registers.Reset)
+        self.readRegister(self.Registers.Reset)
 
         # If there's more CPU->debugger data, keep reading that
         while self.readMailbox(timeout = 0.0) != None:

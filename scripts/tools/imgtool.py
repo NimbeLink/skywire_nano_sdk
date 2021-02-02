@@ -31,8 +31,32 @@ def __getImgtoolPath():
         # Get this script's directory
         ourPath = os.path.dirname(os.path.realpath(__file__))
 
-        # Hop up our of our scripts/ and project directories and into MCUBoot
-        theirPath = os.path.join(ourPath, "../../../mcuboot/scripts")
+        scriptPath = "mcuboot/scripts"
+
+        # Hop up out of our scripts/ and project directories and into MCUBoot,
+        # accounting for a few nestings of directories
+        for i in range(5):
+            try:
+                # Hop up one more
+                scriptPath = os.path.join("../", scriptPath)
+
+                # Form the full path, relative to us
+                theirPath = os.path.join(ourPath, scriptPath)
+
+                # If that's the ticket, move on
+                if os.path.exists(theirPath):
+                    break
+
+                # In the event this is the last iteration, make sure this is a
+                # failure
+                theirPath = None
+
+            except OSError:
+                theirPath = None
+
+        # If we failed to find an existing directory, complain
+        if theirPath == None:
+            raise OSError()
 
         # Get the Python script's path
         imgtoolFile = os.path.join(theirPath, "imgtool.py")
@@ -44,7 +68,7 @@ def __getImgtoolPath():
         return theirPath
 
     except OSError:
-        raise Exception("Failed to find imgtool.py at '{}'!".format(theirPath))
+        raise ImportError("Failed to find imgtool.py at '{}'!".format(theirPath))
 
 # Get imgtool.py and include its path for importing
 sys.path.insert(1, __getImgtoolPath())
