@@ -21,7 +21,28 @@ import re
 import subprocess
 import textwrap
 
-from west.configuration import config
+try:
+    from west.configuration import config
+
+except ImportError:
+    class config:
+        """A pretend west configuration
+        """
+
+        @staticmethod
+        def get(*args, **kwargs):
+            """Pretends to get a configuration
+
+            :param *args:
+                Arguments for the config get
+            :param **kwargs
+                Keyword arguments for the config get
+
+            :return None:
+                Always
+            """
+
+            return None
 
 from tools.wsl import Wsl
 
