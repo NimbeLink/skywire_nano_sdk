@@ -15,7 +15,28 @@
 import argparse
 import os
 
-from west.commands import WestCommand
+try:
+    from west.commands import WestCommand
+
+except ImportError:
+    class WestCommand:
+        """A pretend west command when the tool isn't installed
+        """
+
+        def __init__(self, *args, **kwargs):
+            """Pretends to create a west command
+
+            :param self:
+                Self
+            :param *args:
+                Arguments for the west command
+            :param **kwargs:
+                Keyword arguments for the west command
+
+            :return none:
+            """
+
+            pass
 
 class Dualie(WestCommand):
     """A command that can be run under 'west' or basic Python
