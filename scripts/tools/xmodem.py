@@ -14,8 +14,6 @@
 
 import time
 
-from west import log
-
 class Xmodem:
     """An XMODEM interface
     """
