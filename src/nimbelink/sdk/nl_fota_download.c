@@ -226,7 +226,7 @@ int fota_download_start(const char *host, const char *file)
     int length = snprintf(
         command,
         sizeof(command),
-        "AT#XFOTA=%s,%s",
+        "AT#XFOTA=\"%s\",\"%s\"",
         host,
         file
     );
