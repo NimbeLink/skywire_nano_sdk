@@ -32,9 +32,9 @@
 };
 
 / {
-    // SRAM allocated to the app
+    // SRAM allocated to the app for v1.1.0 of the stack firmware or later
     sram0_app: memory@20000000 {
-        reg = <0x20000000 DT_SIZE_K(64)>;
+        reg = <0x20000000 DT_SIZE_K(80)>;
     };
 
     aliases {
