@@ -18,6 +18,21 @@ config BOARD
 	default "skywire_nano_app" if BOARD_SKYWIRE_NANO_APP
 	default "skywire_nano_app_v1_0_x" if BOARD_SKYWIRE_NANO_APP_V1_0_X
 
+config STACK_ABI_VERSION
+    string "Stack firmware Application Binary Interface (ABI) version"
+    default "v1.1.0+0" if BOARD_SKYWIRE_NANO_APP
+    default "v1.0.0+0" if BOARD_SKYWIRE_NANO_APP_V1_0_X
+    help
+        The minimum version of stack firmware on the Skywire Nano in order to be
+        compatible with the Application Binary Interface (ABI). This can be used
+        when signing images to prevent accidentally using new Non-Secure
+        firmware on a device with older stack firmware.
+
+        MCUBoot -- the Skywire Nano boot loader -- does not support a maximum
+        version for its compatibility checking, however. As such, this cannot be
+        used to prevent the opposite condition, where older Non-Secure firmware
+        is used on a device with newer stack firmware.
+
 DT_CHOSEN_Z_CODE_PARTITION := zephyr,code-partition
 
 config FLASH_LOAD_SIZE
