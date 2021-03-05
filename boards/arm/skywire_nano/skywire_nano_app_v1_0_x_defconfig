@@ -1,0 +1,26 @@
+###
+ # \file
+ #
+ # \brief Provides Skywire Nano app configurations
+ #
+ # (C) NimbeLink Corp. 2020
+ #
+ # All rights reserved except as explicitly granted in the license agreement
+ # between NimbeLink Corp. and the designated licensee.  No other use or
+ # disclosure of this software is permitted. Portions of this software may be
+ # subject to third party license terms as specified in this software, and such
+ # portions are excluded from the preceding copyright notice of NimbeLink Corp.
+ ##
+
+CONFIG_SOC_SERIES_NRF91X=y
+CONFIG_SOC_NRF9160_SICA=y
+CONFIG_BOARD_SKYWIRE_NANO_APP_V1_0_X=y
+
+# Enable MPU
+CONFIG_ARM_MPU=y
+
+# Enable TrustZone-M
+CONFIG_ARM_TRUSTZONE_M=y
+
+# This Board implies building Non-Secure firmware
+CONFIG_TRUSTED_EXECUTION_NONSECURE=y

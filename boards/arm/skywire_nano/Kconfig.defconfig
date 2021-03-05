@@ -12,10 +12,11 @@
  # portions are excluded from the preceding copyright notice of NimbeLink Corp.
  ##
 
-if BOARD_SKYWIRE_NANO_APP
+if BOARD_SKYWIRE_NANO_APP || BOARD_SKYWIRE_NANO_APP_V1_0_X
 
 config BOARD
-	default "skywire_nano_app"
+	default "skywire_nano_app" if BOARD_SKYWIRE_NANO_APP
+	default "skywire_nano_app_v1_0_x" if BOARD_SKYWIRE_NANO_APP_V1_0_X
 
 DT_CHOSEN_Z_CODE_PARTITION := zephyr,code-partition
 

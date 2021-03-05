@@ -1,0 +1,16 @@
+/**
+ * (C) NimbeLink Corp. 2020
+ *
+ * All rights reserved except as explicitly granted in the license agreement
+ * between NimbeLink Corp. and the designated licensee.  No other use or
+ * disclosure of this software is permitted. Portions of this software may be
+ * subject to third party license terms as specified in this software, and such
+ * portions are excluded from the preceding copyright notice of NimbeLink Corp.
+ */
+
+/ {
+    // SRAM allocated to the app for v1.0.x of the stack firmware
+    sram0_app: memory@20000000 {
+        reg = <0x20000000 DT_SIZE_K(64)>;
+    };
+};

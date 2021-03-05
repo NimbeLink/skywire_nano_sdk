@@ -16,5 +16,15 @@ if SOC_NRF9160_SICA
 
 config BOARD_SKYWIRE_NANO_APP
     bool "Skywire Nano -- Non-Secure App"
+    help
+        This will select the latest Skywire Nano board, which is compatible with
+        all hardware variants, but only v1.1.x or greater stack firmware.
+
+config BOARD_SKYWIRE_NANO_APP_V1_0_X
+    bool "Skywire Nano -- Non-Secure App, version v1.0.x"
+    help
+        This will select the older Skywire Nano board, which is compatible with
+        the v1.0.x stack firmware Application Binary Interface (ABI). This is
+        compatible with all Skywire Nano hardware variants.
 
 endif
