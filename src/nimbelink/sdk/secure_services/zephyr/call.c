@@ -542,7 +542,7 @@ static inline void SetupEguChannel(size_t channel)
  * \return 0
  *      Always
  */
-static int SetupSecureServices(struct device *device)
+static int SetupSecureServices(const struct device *device)
 {
     (void)device;
 

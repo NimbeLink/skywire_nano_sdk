@@ -109,6 +109,7 @@ config REQUEST_NON_SECURE_EGU_5
 config REQUEST_NON_SECURE_PWM_0
     bool "Request Non-Secure access to PWM0"
     default y if PWM_0
+    default y if NRFX_PWM0
     help
         Generates a request for Non-Secure access to the PWM0 peripheral at
         system startup.
@@ -116,6 +117,7 @@ config REQUEST_NON_SECURE_PWM_0
 config REQUEST_NON_SECURE_PWM_1
     bool "Request Non-Secure access to PWM1"
     default y if PWM_1
+    default y if NRFX_PWM1
     help
         Generates a request for Non-Secure access to the PWM1 peripheral at
         system startup.
@@ -123,6 +125,7 @@ config REQUEST_NON_SECURE_PWM_1
 config REQUEST_NON_SECURE_PWM_2
     bool "Request Non-Secure access to PWM2"
     default y if PWM_2
+    default y if NRFX_PWM2
     help
         Generates a request for Non-Secure access to the PWM2 peripheral at
         system startup.
@@ -130,6 +133,7 @@ config REQUEST_NON_SECURE_PWM_2
 config REQUEST_NON_SECURE_PWM_3
     bool "Request Non-Secure access to PWM3"
     default y if PWM_3
+    default y if NRFX_PWM3
     help
         Generates a request for Non-Secure access to the PWM3 peripheral at
         system startup.

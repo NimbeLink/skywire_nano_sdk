@@ -28,7 +28,7 @@
  * \return 0
  *      Always
  */
-static int RequestPeripherals(struct device *device)
+static int RequestPeripherals(const struct device *device)
 {
     static const uintptr_t Peripherals[] = {
     #   if CONFIG_REQUEST_NON_SECURE_UARTE_1

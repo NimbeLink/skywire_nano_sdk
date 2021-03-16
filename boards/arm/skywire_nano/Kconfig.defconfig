@@ -15,7 +15,7 @@
 if BOARD_SKYWIRE_NANO_APP
 
 config BOARD
-	default "skywire_nano_app" if BOARD_SKYWIRE_NANO_APP
+	default "skywire_nano_app"
 
 DT_CHOSEN_Z_CODE_PARTITION := zephyr,code-partition
 
@@ -24,5 +24,36 @@ config FLASH_LOAD_SIZE
 
 config FLASH_LOAD_OFFSET
 	default $(dt_chosen_reg_addr_hex,$(DT_CHOSEN_Z_CODE_PARTITION))
+
+# The Skywire Nano boot loader expects our header to be a particular size
+config ROM_START_OFFSET
+    default 0x200
+
+# The Secure stack firmware will manage TrustZone operations, so do not use the
+# nRF Connect SDK implementation
+config SPM
+    default n
+
+# The Secure stack firmware will manage the co-processor communications, so do
+# not use our own BSDLIB
+config BSD_LIBRARY
+    default n
+
+# We will always need to handle floating-point registers while running alongside
+# the Secure stack firmware
+config FPU
+    default y
+config FPU_SHARING
+    default y
+
+# We will not manage the clock on our own, as that's the Secure stack firmware's
+# responsibility
+config CLOCK_CONTROL
+    default n
+
+# The Secure stack firmware does not allow Non-Secure access to the crypto by
+# default
+config HW_CC3XX_FORCE_ALT
+    default y
 
 endif

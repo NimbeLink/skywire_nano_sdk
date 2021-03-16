@@ -17,8 +17,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <at_cmd.h>
-#include <at_notif.h>
+#include <modem/at_cmd.h>
+#include <modem/at_notif.h>
 #include <net/fota_download.h>
 
 #include "nimbelink/sdk/cell/at/cme.h"
@@ -213,8 +213,17 @@ int fota_download_init(fota_download_callback_t client_callback)
  * \return 0
  *      FOTA download started
  */
-int fota_download_start(const char *host, const char *file)
+int fota_download_start(
+    const char *host,
+    const char *file,
+    int sec_tag,
+    const char *apn,
+    size_t fragment_size
+)
 {
+    (void)sec_tag;
+    (void)apn;
+
     // If we've already started FOTA, ignore this
     if (fotaStarted)
     {
@@ -226,9 +235,10 @@ int fota_download_start(const char *host, const char *file)
     int length = snprintf(
         command,
         sizeof(command),
-        "AT#XFOTA=\"%s\",\"%s\"",
+        "AT#XFOTA=\"%s\",\"%s\",%u",
         host,
-        file
+        file,
+        fragment_size
     );
 
     // If that didn't all fit in the buffer, obviously this won't work

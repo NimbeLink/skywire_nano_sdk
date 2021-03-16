@@ -18,8 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <at_cmd.h>
-#include <at_notif.h>
+#include <modem/at_cmd.h>
+#include <modem/at_notif.h>
 #include <device.h>
 #include <init.h>
 #include <zephyr.h>
@@ -105,8 +105,6 @@ static __attribute__((unused)) int _at_cmd_init(struct device *device)
  *      The AT command to run
  * \param handler
  *      A callback to invoke with a response
- * \param *state
- *      Where to put the final outcome
  *
  * \return -ENOBUFS
  *      AT_CMD_RESPONSE_MAX_LEN is not large enough to hold the data returned
@@ -126,8 +124,7 @@ static __attribute__((unused)) int _at_cmd_init(struct device *device)
  */
 int at_cmd_write_with_callback(
     const char *const cmd,
-    at_cmd_handler_t  handler,
-    enum at_cmd_state *state
+    at_cmd_handler_t  handler
 )
 {
     // It seems that the response length should include a spot for the NULL
@@ -138,7 +135,7 @@ int at_cmd_write_with_callback(
         cmd,
         buf,
         sizeof(buf),
-        state
+        NULL
     );
 
     // If that failed, don't call the callback
