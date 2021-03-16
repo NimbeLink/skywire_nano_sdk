@@ -12,6 +12,7 @@
  # portions are excluded from the preceding copyright notice of NimbeLink Corp.
  ##
 
+import os
 import tempfile
 
 from commands.command import Command
@@ -107,15 +108,19 @@ class FormatCommand(Command):
             key = imgtool.load_key(keyfile = args.input)
             keyBytes = key.get_public_bytes()
 
-            with tempfile.NamedTemporaryFile(mode = "w+b") as keyFile:
+            with tempfile.NamedTemporaryFile(mode = "w+b", delete = False) as keyFile:
                 keyFile.write(bytearray(keyBytes))
                 keyFile.flush()
 
-                Dfu.generateBinary(
-                    file = keyFile.name,
-                    type = FormatCommand.FriendlyTypes[args.type],
-                    outputFile = args.outputFile
-                )
+                keyFileName = keyFile.name
+
+            Dfu.generateBinary(
+                file = keyFileName,
+                type = FormatCommand.FriendlyTypes[args.type],
+                outputFile = args.outputFile
+            )
+
+            os.remove(keyFileName)
 
         # Else, if they specified an encryption key, extract the key's raw
         # binary contents
@@ -123,15 +128,19 @@ class FormatCommand(Command):
             key = imgtool.load_key(keyfile = args.input)
             keyBytes = key.get_private_bytes(minimal = False)
 
-            with tempfile.NamedTemporaryFile(mode = "w+b") as keyFile:
+            with tempfile.NamedTemporaryFile(mode = "w+b", delete = False) as keyFile:
                 keyFile.write(bytearray(keyBytes))
                 keyFile.flush()
 
-                Dfu.generateBinary(
-                    file = keyFile.name,
-                    type = FormatCommand.FriendlyTypes[args.type],
-                    outputFile = args.outputFile
-                )
+                keyFileName = keyFile.name
+
+            Dfu.generateBinary(
+                file = keyFileName,
+                type = FormatCommand.FriendlyTypes[args.type],
+                outputFile = args.outputFile
+            )
+
+            os.remove(keyFileName)
 
         # Else, if they specified a partition layout, make a file with them
         elif args.type == "partition":
@@ -141,7 +150,7 @@ class FormatCommand(Command):
                 print("Must have all four fields for partitions!")
                 return
 
-            with tempfile.NamedTemporaryFile(mode = "w+b") as partitionFile:
+            with tempfile.NamedTemporaryFile(mode = "w+b", delete = False) as partitionFile:
                 for value in values:
                     partitionFile.write(
                         value.to_bytes(
@@ -153,11 +162,15 @@ class FormatCommand(Command):
 
                 partitionFile.flush()
 
-                Dfu.generateBinary(
-                    file = partitionFile.name,
-                    type = FormatCommand.FriendlyTypes[args.type],
-                    outputFile = args.outputFile
-                )
+                partitionFileName = partitionFile.name
+
+            Dfu.generateBinary(
+                file = partitionFileName,
+                type = FormatCommand.FriendlyTypes[args.type],
+                outputFile = args.outputFile
+            )
+
+            os.remove(partitionFileName)
 
         # Else, just use their input file directly
         else:
