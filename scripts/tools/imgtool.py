@@ -14,6 +14,7 @@
 
 import diskcache
 import os
+import subprocess
 import sys
 
 from functools import lru_cache
@@ -34,12 +35,9 @@ def __getImgtoolPath():
     try:
         # Get this script's directory
         ourPath = os.path.dirname(os.path.realpath(__file__))
-    except OSError:
-        raise ImportError("Failed to get our script's directory!")
 
-    try:
-        # Get our local cache
-        cache = diskcache.Cache(os.path.join(ourPath, ".cache"))
+        # Get our local cache using Python's cache directory
+        cache = diskcache.Cache(os.path.join(ourPath, "__pycache__"))
 
         # If the imgtool script is cached and still exists, keep using it
         if ("imgtoolPath" in cache) and os.path.exists(cache["imgtoolPath"]):
@@ -48,65 +46,44 @@ def __getImgtoolPath():
     except OSError:
         cache = None
 
+    # Let the user know we're hunting for imgtool.py
+    print("Doing one-time find for imgtool.py...")
+
     try:
-        # We'll be looking for the imgtool script provided by MCUBoot
-        scriptPath = "mcuboot/scripts/imgtool.py"
+        # Use 'west' to find our top-level directory
+        topLevelPath = subprocess.check_output(["west", "topdir"]).decode().strip()
 
-        # We'll start one directory up the first go-round
-        nextPath = ""
+    except subprocess.CalledProcessError:
+        raise ImportError("Failed to find top-level directory!")
 
-        # Hop up out of our scripts/ and project directories and into MCUBoot,
-        # accounting for a few nestings of directories
-        #
-        # We'll do this to try and find what it likely to be the most relevant
-        # MCUBoot repository, in the event there are more. Additionally,
-        # hopefully it'll cut down on time spent searching if we incrementally
-        # do wider searches rather than potentially searching through an entire
-        # file system, say.
-        for i in range(5):
-            try:
-                # Hop up one more directory for the script's relative path
-                nextPath = os.path.join("../", nextPath)
+    # We'll be looking for the imgtool script provided by MCUBoot
+    scriptPath = os.path.join("scripts", "imgtool.py")
 
-                # Try to find the file by doing a recursive search
-                results = list(Path(nextPath).rglob(scriptPath))
+    # Try to find the file by doing a recursive search
+    results = list(Path(topLevelPath).rglob(scriptPath))
 
-                # If that's the ticket, move on
-                if len(results) > 0:
-                    # Note that the actual object isn't a string, so we'll need
-                    # to get the string representation of the path
-                    theirPath = "{}".format(results[0].absolute())
-                    break
+    # If we failed to find an existing directory, complain
+    if len(results) < 0:
+        raise ImportError("Failed to find imgtool.py!")
 
-                # In the event this is the last iteration, make sure this is a
-                # failure
-                theirPath = None
+    # Note that the actual object isn't a string, so we'll need to get the
+    # string representation of the path
+    imgtoolPath = "{}".format(results[0].absolute())
 
-            except OSError:
-                theirPath = None
+    # We only care about the path to the file itself, so drop the file's name
+    imgtoolPath = os.path.dirname(imgtoolPath)
 
-        # If we failed to find an existing directory, complain
-        if theirPath == None:
-            raise OSError()
+    # If the file doesn't exist, complain
+    if not os.path.exists(imgtoolPath):
+        raise ImportError("Failed to find imgtool.py!")
 
-        # If the file doesn't exist, complain
-        if not os.path.exists(theirPath):
-            raise OSError()
+    # If we made our cache earlier
+    if cache != None:
+        # We found the thing we want, so first cache it to (hopefully) speed
+        # this up next time
+        cache["imgtoolPath"] = imgtoolPath
 
-        # We only care about the path to the file itself, so drop the file's
-        # name
-        theirPath = os.path.dirname(theirPath)
-
-        # If we made our cache earlier
-        if cache != None:
-            # We found the thing we want, so first cache it to (hopefully) speed
-            # this up next time
-            cache["imgtoolPath"] = theirPath
-
-        return theirPath
-
-    except OSError:
-        raise ImportError("Failed to find imgtool.py at '{}'!".format(theirPath))
+    return imgtoolPath
 
 # Get imgtool.py and include its path for importing
 sys.path.insert(1, __getImgtoolPath())
