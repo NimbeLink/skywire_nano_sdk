@@ -15,33 +15,12 @@
 import sys
 
 from dualie import Dualie
+from commands.skywire import SkywireCommand as _SkywireCommand
 
-subCommands = []
-
-try:
-    from commands.app import AppCommand
-    subCommands += [AppCommand()]
-except ImportError:
-    pass
-
-try:
-    from commands.format import FormatCommand
-    subCommands += [FormatCommand()]
-except ImportError:
-    pass
-
-try:
-    from commands.update import UpdateCommand
-    subCommands += [UpdateCommand()]
-except ImportError:
-    pass
-
-# Make a configuration for our 'skywire' command
-anonymousConfig = Dualie.AnonymousConfig(
-    name = "skywire",
-    isRaw = None,
-    description = "provides Skywire commands",
-    subCommands = subCommands
+SkywireCommand = Dualie.makeInstantiable(
+    anonymousConfig = Dualie.AnonymousConfig(
+        command = _SkywireCommand
+    )
 )
 
 # If we're being run from a standard Python context, manually run our command
@@ -49,14 +28,6 @@ anonymousConfig = Dualie.AnonymousConfig(
 # Otherwise, 'west' (which would be the thing likely running us in that case)
 # will do everything for us.
 if __name__ == "__main__":
-    anonymousConfig.isRaw = True
+    SkywireCommand.setRaw(isRaw = True)
 
-    SkywireCommand = Dualie.makeInstantiable(anonymousConfig = anonymousConfig)
-
-    SkywireCommand().runRaw(args = sys.argv[1:])
-
-# Else, we're being run from 'west', so set up the dualie command
-else:
-    anonymousConfig.isRaw = False
-
-    SkywireCommand = Dualie.makeInstantiable(anonymousConfig = anonymousConfig)
+    SkywireCommand().do_run(args = None, unknownArgs = None)

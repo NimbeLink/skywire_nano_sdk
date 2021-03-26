@@ -46,27 +46,21 @@ class Dualie(WestCommand):
         """A configuration for an anonymous class
         """
 
-        def __init__(self, name, isRaw, description, subCommands):
+        def __init__(self, command, isRaw = False):
             """Creates a new anonymous config
 
             :param self:
                 Self
-            :param name:
-                The name of the instantiated dualie command
+            :param command:
+                The root command to wrap
             :param isRaw:
                 Whether or not we're running in a 'raw' Python context
-            :param description:
-                Info about this dualie command
-            :param subCommands:
-                Our available sub-commands
 
             :return none:
             """
 
-            self.name = name
+            self.command = command
             self.isRaw = isRaw
-            self.description = description
-            self.subCommands = subCommands
 
     @staticmethod
     def makeInstantiable(anonymousConfig):
@@ -84,6 +78,20 @@ class Dualie(WestCommand):
 
         return Anonymous
 
+    @classmethod
+    def setRaw(cls, isRaw):
+        """Sets if this class is a 'raw' Python command
+
+        :param cls:
+            Class
+        :param isRaw:
+            Whether or not we're running in a 'raw' Python context
+
+        :return none:
+        """
+
+        cls.config.isRaw = isRaw
+
     def __init__(self, *args, **kwargs):
         """Creates a new dualie command
 
@@ -100,59 +108,44 @@ class Dualie(WestCommand):
         # Note our parent's configuration
         self._config = self.__class__.config
 
+        # Instantiate our command
+        self._config.command = self._config.command()
+
         # If this isn't 'raw' -- that is, it's probably through 'west' -- then
-        # initialize our parent class
+        # initialize our parent class as if we were the command we wrap
         if not self._config.isRaw:
             super().__init__(
-                self._config.name,
+                self._config.command._name,
                 *args,
                 **kwargs,
-                help = self._config.description,
-                description = self._config.description
+                help = self._config.command._help,
+                description = self._config.command._description
             )
 
-    def do_add_parser(self, parserAdder):
+    def do_add_parser(self, parser):
         """Adds a parser
 
         :param self:
             Self
-        :param parserAdder:
+        :param parser:
             The parser to add to
 
         :return parser:
             The new parser
         """
 
-        if not self._config.isRaw:
-            parser = parserAdder.add_parser(
-                self._config.name,
-                help = self._config.description,
-                description = self._config.description
+        # If we are not given a parser, first make one of our own
+        if parser == None:
+            parser = argparse.ArgumentParser(
+                description = self._config.command._description
             )
+
+        # Else, add our command to the parser
         else:
-            parser = parserAdder
+            parser = self._config.command._createParser(parser = parser)
 
-        # Add an always-available argument for being verbose
-        parser.add_argument(
-            "-v",
-            "--verbose",
-            dest = "verbose",
-            action = "count",
-            default = 0,
-            required = False,
-            help = "Use verbose output"
-        )
-
-        # Make a sub-parser for the commands we find
-        subParser = parser.add_subparsers(
-            title = "commands",
-            dest = "command",
-            required = True
-        )
-
-        # For each command we found, add its arguments to our sub-parser
-        for command in self._config.subCommands:
-            command._addArguments(parserAdder = subParser)
+        # Add our command's arguments
+        self._config.command._addArguments(parser = parser)
 
         return parser
 
@@ -169,32 +162,14 @@ class Dualie(WestCommand):
         :return none:
         """
 
-        for command in self._config.subCommands:
-            if command._name == args.command:
-                command._runCommand(args = args, unknownArgs = unknownArgs)
-                break
+        # If we're being run 'raw', then we'll need to managing creating parsers
+        # on owr own
+        if self._config.isRaw:
+            # Add our parameters and whatnot to a new parser
+            parser = self.do_add_parser(parser = None)
 
-    def runRaw(self, args):
-        """Runs a command invocation
+            # Parse the arguments using the parser we made
+            args = parser.parse_args(args = args)
+            unknownArgs = []
 
-        :param self:
-            Self
-        :param args:
-            Arguments to parse
-
-        :return none
-        """
-
-        # Make a parser
-        parser = argparse.ArgumentParser(
-            description = self._config.description
-        )
-
-        # Add our parameters and whatnot
-        self.do_add_parser(parserAdder = parser)
-
-        # Parse the arguments
-        args = parser.parse_args(args = args)
-
-        # Call the appropriate command with the parsed arguments
-        self.do_run(args = args, unknownArgs = [])
+        self._config.command._runCommand(args = args, unknownArgs = unknownArgs)

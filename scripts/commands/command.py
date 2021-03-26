@@ -54,6 +54,47 @@ class Command:
     ConfigPrefix = "skywire:nano"
     """A prefix we'll use for all of our Skywire Nano command configurations"""
 
+    class SubCommand:
+        """A sub-command for a base command
+        """
+
+        def __init__(self, moduleName, className):
+            """Creates a new available sub-command
+
+            :param self:
+                Self
+            :param moduleName:
+                The module the class is found in
+            :param className:
+                The name of the class to import from the module
+
+            :return none:
+            """
+
+            self.moduleName = moduleName
+            self.className = className
+
+        def getClass(self):
+            """Gets the sub-command's class instance
+
+            :param self:
+                Self
+
+            :return None:
+                Failed to get class instance
+            :return Class:
+                The class instance
+            """
+
+            try:
+                _module = importlib.import_module(self.moduleName)
+                _class = getattr(_module, self.className)
+
+                return _class
+
+            except ImportError:
+                return None
+
     @staticmethod
     def _generateDescription(description):
         """Generates a big string describing this command
@@ -120,7 +161,7 @@ class Command:
 
         return text
 
-    def __init__(self, name, help, description, needUsb = False, configs = None):
+    def __init__(self, name, help, description, subCommands = None, needUsb = False, configs = None):
         """Creates a new skywire command
 
         This will append a prefix to all Skywire Command child classes to
@@ -135,6 +176,8 @@ class Command:
             The short-form help text of the Skywire command
         :param description:
             The long-form description text of the Skywire command
+        :param subCommands:
+            Sub-commands that this command contains
         :param needUsb:
             Whether or not this command needs USB functionality
         :param configs:
@@ -142,6 +185,9 @@ class Command:
 
         :return none:
         """
+
+        if subCommands == None:
+            subCommands = []
 
         # Add the configurations as additional description text
         if (configs != None) and (len(configs) > 0):
@@ -152,14 +198,23 @@ class Command:
 
         self._name = name
         self._help = help
+        self._description = Command._generateDescription(description = description)
+
+        self._subCommands = []
+
+        # Instantiate each of the sub-commands
+        for subCommand in subCommands:
+            subCommandClass = subCommand.getClass()
+
+            if subCommandClass != None:
+                self._subCommands.append(subCommandClass())
+
         self._needUsb = needUsb
         self._configs = configs
 
-        # Generate the description text
-        self._description = Command._generateDescription(description = description)
-
     def getConfig(self, name):
         """Gets a configuration for a command
+
         :param self:
             Self
         :param name:
@@ -191,15 +246,16 @@ class Command:
             fallback = None
         )
 
-    def _addArguments(self, parserAdder):
-        """Adds a parser
+    def _createParser(self, parser):
+        """Adds our root parser
 
         :param self:
             Self
-        :param parserAdder:
+        :param parser:
             The parser adder
 
-        :return none:
+        :return parser:
+            The root parser
         """
 
         # Make sure we keep our wonderful description's formatting by telling
@@ -208,17 +264,51 @@ class Command:
         #
         # This should effectively mean all of our hard formatting work above is
         # left alone and printed to the console literally.
-        parser = parserAdder.add_parser(
+        return parser.add_parser(
             self._name,
             help = self._help,
             description = self._description,
             formatter_class = argparse.RawDescriptionHelpFormatter
         )
 
-        self.addArguments(parser)
+    def _addArguments(self, parser):
+        """Adds arguments to a parser
+
+        :param self:
+            Self
+        :param parser:
+            The parser to add arguments to
+
+        :return none:
+        """
+
+        # First add this command's arguments
+        self.addArguments(parser = parser)
+
+        # If we don't have sub-commands, nothing else to do
+        if len(self._subCommands) < 1:
+            return
+
+        # Make a sub-parser for our sub-commands
+        #
+        # To avoid issues with nested sub-command users, make our sub-command
+        # name argument unique to us.
+        parser = parser.add_subparsers(
+            title = "{}SubCommands".format(self._name),
+            dest = "{}SubCommand".format(self._name),
+            required = True
+        )
+
+        # For each of our command's sub-commands
+        for subCommand in self._subCommands:
+            # Add a new parser for this sub-command
+            subParser = subCommand._createParser(parser = parser)
+
+            # Add this sub-command's arguments
+            subCommand._addArguments(parser = subParser)
 
     def _runCommand(self, args, unknownArgs):
-        """Runs the stuff command
+        """Runs the command
 
         :param self:
             Self
@@ -237,11 +327,30 @@ class Command:
             return
 
         try:
-            self.runCommand(args, unknownArgs)
+            # Always give the base command the chance to run
+            try:
+                done = self.runCommand(args, unknownArgs)
+
+            except NotImplementedError:
+                done = False
+
+            # If that was it or we don't have any sub-commands, move on
+            if done or (len(self._subCommands) < 1):
+                return
+
+            # Get the name of the sub-command, which we made unique
+            subCommandName = args.__getattribute__("{}SubCommand".format(self._name))
+
+            # Try to find a sub-command that'll run this
+            for subCommand in self._subCommands:
+                if subCommand._name == subCommandName:
+                    subCommand._runCommand(args = args, unknownArgs = unknownArgs)
+                    return
+
         except KeyboardInterrupt as ex:
             self.abortCommand()
 
-    def generateUnimplementedException(self):
+    def _generateUnimplementedException(self):
         """Generates an unimplemented exception with a function's signature
 
         :param self:
@@ -268,10 +377,15 @@ class Command:
         :return none:
         """
 
-        self.generateUnimplementedException()
+        self._generateUnimplementedException()
 
     def runCommand(self, args, unknownArgs):
-        """Runs the stuff command
+        """Runs the command
+
+        Typical commands do not need to return a value, but commands with
+        sub-commands might want to do some intermediate or final handling, and
+        can use the return as an indication that the command is done being
+        handled.
 
         :param self:
             Self
@@ -280,13 +394,17 @@ class Command:
         :param unknownArgs:
             Our unknown arguments
 
-        :return none:
+        :return None:
+        :return False:
+            Command not done
+        :return True:
+            Command handled
         """
 
-        self.generateUnimplementedException()
+        self._generateUnimplementedException()
 
     def abortCommand(self):
-        """Aborts the stuff command
+        """Aborts the command
 
         :param self:
             Self
