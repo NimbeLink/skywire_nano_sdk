@@ -38,9 +38,9 @@ class AppCommand(Command):
             name = "app",
             needUsb = True,
             help = "communicates with Skywire Nano application firmware",
-            description = [
-                "This tool will attempt to communicate with a Nano."
-            ]
+            description =
+                """This tool will attempt to communicate with a Nano.
+                """
         )
 
     def addArguments(self, parser):

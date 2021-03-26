@@ -38,9 +38,9 @@ class UpdateCommand(Command):
             name = "update",
             needUsb = True,
             help = "updates Skywire Nano devices",
-            description = [
-                "This tool will attempt to update a Skywire Nano's firmware."
-            ]
+            description =
+                """This tool will attempt to update a Skywire Nano's firmware.
+                """
         )
 
     def addArguments(self, parser):

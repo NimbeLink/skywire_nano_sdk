@@ -30,9 +30,9 @@ class SkywireCommand(Command):
         super().__init__(
             name = "skywire",
             help = "provides Skywire commands",
-            description = [
-                "This provides sub-commands for working with the Skywire Nano."
-            ],
+            description =
+                """This provides sub-commands for working with the Skywire Nano.
+                """,
             subCommands = [
                 Command.SubCommand("commands.app",      "AppCommand"),
                 Command.SubCommand("commands.format",   "FormatCommand"),

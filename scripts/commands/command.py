@@ -106,58 +106,76 @@ class Command:
             The description string
         """
 
-        # I'm going through a few hoops here to make it easier on you lazy devs
-        # out there
-        #
-        # We'll first make a series of multi-line strings using Python's
-        # triple-quote syntax. Then, for each one of those, we'll use
-        # textwrap.dedent() to drop the indendations that Python will include
-        # in the original strings -- which mucks with the console's output, as
-        # it should be left-aligned.
-        #
-        # After we have a large string, we'll auto-justify it to 80 columns to
-        # make it look nice and pretty. Then we'll go through and compile the
-        # ultimate string with each of those justified lines, including extra
-        # blank lines between each paragraph's set of lines.
-        #
-        # This all keeps things here in the source nice and easy to format
-        # without having to do things like have our text all the way at the
-        # left of the editor screen or for developers to have to move the text
-        # around their screen as they're editing the description itself to
-        # manually justify it in the source. All you should have to do is edit
-        # the text, justify the whole thing here in the source (purely for the
-        # sake of people looking at the source), and move on.
-        #
-        # Additionally, the tripe-quotes and backslash are critical for
-        # textwrap.dedent() to work. Not including that puts the first line at
-        # a different indentation level in the original string -- which makes
-        # sense -- and that prevents it from properly doing its job
-        # (essentially, it just leaves the trailing indented lines alone,
-        # effectively doing nothing).
-        #
-        # Please keep the standalone triple-quotes below, as some of us have
-        # hand-compiled syntax highlighters for our editors that are a little
-        # more picky about Python's triple-quote syntax
-        lines = []
+        # We likely have a description with a bunch of leading whitespace from a
+        # multi-line string in the raw Python source, so let's first strip all
+        # of that away
+        fields = description.split("\n", maxsplit = 1)
 
-        for paragraph in description:
-            # Move our raw strings over so they're justified to the left
-            justifiedText = textwrap.dedent(paragraph)
+        # If there is a potential special case where the first line began
+        # immediately after the triple quote, only unindent everything after
+        # that line
+        if fields[0] == fields[0].lstrip():
+            description = fields[0] + "\n" + textwrap.dedent(fields[1])
 
-            # Wrap the lines at 80 columns
-            lines += textwrap.wrap(
-                justifiedText,
-                80
-            )
+        # Else, unindent everything together
+        else:
+            description = textwrap.dedent(description)
 
-            # Add in a blank line between each paragraph's set of lines
-            lines.append("")
+        # Next let's justify each line to our own standards
+        #
+        # Each line is separated by newline characters in the Python multi-line
+        # string itself, so break the multi-line string into each individual
+        # line.
+        lines = description.split("\n")
+
+        # We're going to be a little lazy with our appending and cleanup as we
+        # form paragraphs, so make sure our space-removing step gets run on the
+        # final paragraph by having an additional empty line to begin one final,
+        # empty paragraph
+        lines.append("")
+
+        paragraphs = [""]
+
+        # Next, the raw source code has its own justification, but that's not
+        # necessarily aligned to the same boundary that we want to display in
+        # the command's output on a terminal, so we'll need to collect each
+        # paragraph
+        #
+        # So, let's string (ha) each line together into a single continuous
+        # string that we can justify on our own.
+        #
+        # We'll note the end of a paragraph once we hit an entirely blank line,
+        # and we'll combine each line by adding a space between them.
+        for line in lines:
+            # If this is an empty line, this is the end of the previous
+            # paragraph
+            if line == "":
+                # We're going to append a space at the beginning of each
+                # paragraph with our lazy appending below, so make sure we
+                # remove that from each paragraph
+                paragraphs[-1] = paragraphs[-1][1:]
+
+                paragraphs.append("")
+
+            # Else, got another line that applies to the current paragraph, so
+            # append it
+            else:
+                paragraphs[-1] += " " + line
 
         text = ""
 
-        for line in lines:
-            # Compile the 80-column lines generated above into a single string
-            text += "{}\n".format(line)
+        # We've got our paragraphs, so let's finally output each line as it'll
+        # appear on a terminal as a single string
+        for paragraph in paragraphs:
+            lines = textwrap.wrap(paragraph, 80)
+
+            for line in lines:
+                text += line + "\n"
+
+            text += "\n"
+
+        # Don't have additional excessive line endings at the beginning or end
+        text = text.lstrip("\n").rstrip("\n")
 
         return text
 
@@ -191,10 +209,10 @@ class Command:
 
         # Add the configurations as additional description text
         if (configs != None) and (len(configs) > 0):
-            description += ["Configurations:"]
+            description += "\n\nConfigurations:"
 
             for config in configs:
-                description += ["-    {}:{}".format(Command.ConfigPrefix, config)]
+                description += "\n\n    {}:{}".format(Command.ConfigPrefix, config)
 
         self._name = name
         self._help = help

@@ -45,9 +45,9 @@ class FormatCommand(Command):
         super().__init__(
             name = "format",
             help = "generates a Skywire Nano DFU-able image",
-            description = [
-                "This tool will generate a firmware binary capable of DFU."
-            ]
+            description =
+                """This tool will generate a firmware binary capable of DFU.
+                """
         )
 
     def addArguments(self, parser):
