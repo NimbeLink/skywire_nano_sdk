@@ -20,8 +20,8 @@ config BOARD
 
 config STACK_ABI_VERSION
     string "Stack firmware Application Binary Interface (ABI) version"
-    default "v1.1.0+0" if BOARD_SKYWIRE_NANO_APP
-    default "v1.0.0+0" if BOARD_SKYWIRE_NANO_APP_V1_0_X
+    default "1.1.0+0" if BOARD_SKYWIRE_NANO_APP
+    default "1.0.0+0" if BOARD_SKYWIRE_NANO_APP_V1_0_X
     help
         The minimum version of stack firmware on the Skywire Nano in order to be
         compatible with the Application Binary Interface (ABI). This can be used
