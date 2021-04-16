@@ -30,11 +30,11 @@ class Wsl:
         """
 
         # Get where we're running
-        environment = platform.platform()
+        environment = platform.platform().lower()
 
         # If both 'Microsoft' and 'Linux' are in the environment, this is the
         # Frankenstein's monster that is Windows Subsystem for Linux
-        if ("Microsoft" in environment) and ("Linux" in environment):
+        if ("microsoft" in environment) and ("linux" in environment):
             return True
 
         # We must be running under either Windows or Linux like a normal person
