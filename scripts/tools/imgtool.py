@@ -43,7 +43,7 @@ def __getImgtoolPath():
         if ("imgtoolPath" in cache) and os.path.exists(cache["imgtoolPath"]):
             return cache["imgtoolPath"]
 
-    except OSError:
+    except Exception:
         cache = None
 
     # Let the user know we're hunting for imgtool.py
