@@ -12,6 +12,12 @@
  # portions are excluded from the preceding copyright notice of NimbeLink Corp.
  ##
 
+# The version generation is still available even when not using the NimbeLink
+# SDK
+menu "NimbeLink Version Generation"
+rsource "Kconfig.version"
+endmenu
+
 menuconfig NIMBELINK_SDK
     bool "NimbeLink SDK"
     default n

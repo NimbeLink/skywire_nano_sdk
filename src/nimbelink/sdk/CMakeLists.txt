@@ -12,6 +12,8 @@
  # portions are excluded from the preceding copyright notice of NimbeLink Corp.
  ##
 
+add_subdirectory(app)
+
 # If the SDK is being used, include the relevant sources
 if (CONFIG_NIMBELINK_SDK)
     zephyr_library()
