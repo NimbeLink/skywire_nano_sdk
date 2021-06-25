@@ -16,11 +16,11 @@
 if (CONFIG_NIMBELINK_SDK)
     # If the older stack firmware ABI is used but the older link library isn't,
     # let the user know that's likely not what they intended
-    if (CONFIG_STACK_ABI_VERSION MATCHES "1\.0.*" AND
+    if (CONFIG_STACK_ABI_VERSION MATCHES "^1\.0\..*" AND
         NOT CONFIG_ARM_ENTRY_VENEERS_LIB_NAME MATCHES "libentryveneers_v1_0.*\.a"
     )
         message(WARNING "Legacy ABI used with newer veneers file!")
-    elseif(CONFIG_STACK_ABI_VERSION MATCHES "1\.1.*" AND
+    elseif(CONFIG_STACK_ABI_VERSION MATCHES "^1\.1\..*" AND
         NOT CONFIG_ARM_ENTRY_VENEERS_LIB_NAME MATCHES "libentryveneers\.a"
     )
         message(WARNING "New ABI used with older veneers file!")
