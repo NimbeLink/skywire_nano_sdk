@@ -86,14 +86,10 @@ class Command:
                 The class instance
             """
 
-            try:
-                _module = importlib.import_module(self.moduleName)
-                _class = getattr(_module, self.className)
+            _module = importlib.import_module(self.moduleName)
+            _class = getattr(_module, self.className)
 
-                return _class
-
-            except ImportError:
-                return None
+            return _class
 
     @staticmethod
     def _generateDescription(description):
