@@ -14,6 +14,8 @@
 
 # If the SDK is being used, include the relevant sources
 if (CONFIG_NIMBELINK_SDK)
+    zephyr_library()
+
     # If the older stack firmware ABI is used but the older link library isn't,
     # let the user know that's likely not what they intended
     if (CONFIG_STACK_ABI_VERSION MATCHES "^1\.0\..*" AND
@@ -30,37 +32,37 @@ if (CONFIG_NIMBELINK_SDK)
     add_subdirectory(secure_services)
 
     # Always include the peripheral request collector
-    zephyr_sources(peripheral_requests.c)
+    zephyr_library_sources(peripheral_requests.c)
 
     # If using the auto-validation of the image, include that
     if (CONFIG_AUTO_IMAGE_VALIDATION)
-        zephyr_sources(image_valid.c)
+        zephyr_library_sources(image_valid.c)
     endif()
 
     # If using NimbeLink's Non-Secure reboot handling, include that
     if (CONFIG_NIMBELINK_REBOOT)
-        zephyr_sources(nl_reboot.c)
+        zephyr_library_sources(nl_reboot.c)
     endif()
 
     # If we're providing the fatal error handling, include that
     if (CONFIG_ABORT_ON_FATAL_ERROR)
-        zephyr_sources(nl_fatal_error.c)
+        zephyr_library_sources(nl_fatal_error.c)
     endif()
 
     # If using NimbeLink's Secure Services for offloading socket operations,
     # include that
     if (CONFIG_NIMBELINK_SOCKETS)
-        zephyr_sources(nl_sockets.c)
+        zephyr_library_sources(nl_sockets.c)
     endif()
 
     # If using NimbeLink's Secure Services for offloading AT functionality,
     # include that
     if (CONFIG_NIMBELINK_AT_CMD)
-        zephyr_sources(nl_at_cmd.c)
+        zephyr_library_sources(nl_at_cmd.c)
     endif()
 
     # If using NimbeLink's Secure Services for offloading FOTA, include that
     if (CONFIG_NIMBELINK_FOTA_DOWNLOAD)
-        zephyr_sources(nl_fota_download.c)
+        zephyr_library_sources(nl_fota_download.c)
     endif()
 endif()

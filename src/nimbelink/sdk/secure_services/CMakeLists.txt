@@ -13,6 +13,4 @@
  ##
 
 # Include the Zephyr handling
-zephyr_sources(
-    zephyr/call.c
-)
+zephyr_library_sources(zephyr/call.c)
