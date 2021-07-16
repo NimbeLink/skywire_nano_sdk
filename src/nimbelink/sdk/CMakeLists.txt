@@ -30,6 +30,20 @@ if (CONFIG_NIMBELINK_SDK)
         message(WARNING "New ABI used with older veneers file!")
     endif()
 
+    # If we're automatically signing the firmware image post-build, add that
+    # custom command
+    if (CONFIG_NIMBELINK_BUILD_AUTO_SIGN)
+        set_property(
+            GLOBAL
+            APPEND
+            PROPERTY
+                extra_post_build_commands
+
+            COMMAND
+                west nano app sign -d ${PROJECT_BINARY_DIR}/../..
+        )
+    endif()
+
     # The SDK will always use Secure Services
     add_subdirectory(secure_services)
 

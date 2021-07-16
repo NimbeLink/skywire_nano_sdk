@@ -31,6 +31,15 @@ menu "Non-Secure Peripheral Access"
 rsource "Kconfig.peripheral_access"
 endmenu
 
+config NIMBELINK_BUILD_AUTO_SIGN
+    bool "Automatically sign and optionally encrypt the application firmware post-build"
+    depends on BUILD_OUTPUT_HEX
+    default y
+    help
+        This will include a post-build command for signing and optionally
+        encrypting the application firmware image. See 'west nano app sign' for
+        more details.
+
 config AUTO_IMAGE_VALIDATION
     bool "Automatically mark image as valid after application booted"
     default y
