@@ -14,6 +14,7 @@ import imgtool.main as imgtool
 import logging
 import os
 import pathlib
+import re
 import struct
 import typing
 
@@ -22,6 +23,11 @@ import nimbelink.utils as utils
 
 class Project:
     """Provides common helpers for working with Skywire Nano projects
+
+    There are two instances where using pathlib.Path.rglob would work well for
+    recursively searching for files, but a few very odd issues have popped up
+    under specific circumstances, and thus manual searching with os.walk() is
+    done instead.
     """
 
     class Key:
@@ -341,7 +347,19 @@ class Project:
 
         self._logger.debug(f"Searching for project file '{fileName}'")
 
-        files = sorted(list(pathlib.Path(self.buildDirectory).rglob(fileName)))
+        files = []
+
+        for item in os.walk(self.buildDirectory):
+            for file in item[2]:
+                # If this doesn't match, skip it
+                if file != fileName:
+                    continue
+
+                file = os.path.join(item[0], file)
+
+                files.append(file)
+
+                self._logger.info(f"Found a '{fileName}' project file '{file}'")
 
         # If there isn't a target in here, that's a paddlin'
         if len(files) < 1:
@@ -356,15 +374,7 @@ class Project:
 
             raise OSError(message)
 
-        # Found it, so use it
-        #
-        # Make sure the file we found is a proper string, which rglob doesn't
-        # return.
-        file = f"{files[0]}"
-
-        self._logger.info(f"Found '{fileName}' project file at '{file}'")
-
-        return file
+        return files[0]
 
     def _getKeys(self, type: "Project.Key.Type") -> typing.List[str]:
         """Gets our keys of a specified type
@@ -414,18 +424,23 @@ class Project:
             directory = os.path.join(self.directory, os.path.dirname(pattern))
             filePattern = os.path.basename(pattern)
 
-            foundKeys = sorted(list(pathlib.Path(directory).rglob(filePattern)))
+            foundKeys = []
+
+            for item in os.walk(directory):
+                for file in item[2]:
+                    # If this doesn't match, skip it
+                    if not re.match(pattern = filePattern, string = file):
+                        continue
+
+                    file = os.path.join(item[0], file)
+
+                    foundKeys.append(file)
+
+                    self._logger.info(f"Found a '{Project.ConfigNames[type]}' key '{file}'")
 
             # If there isn't a key, that's a paddlin'
             if len(foundKeys) < 1:
                 raise OSError(f"Failed to find a key for '{pattern}'")
-
-            # Make sure each key we found is a proper string, which rglob
-            # doesn't return
-            for i in range(len(foundKeys)):
-                foundKeys[i] = f"{foundKeys[i]}"
-
-                self._logger.info(f"Found a '{Project.ConfigNames[type]}' key '{foundKeys[i]}'")
 
             keys += foundKeys
 
