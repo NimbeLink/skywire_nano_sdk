@@ -1,0 +1,104 @@
+###
+ # \file
+ #
+ # \brief Provides configurations for the Skywire Nano
+ #
+ # (C) NimbeLink Corp. 2020
+ #
+ # All rights reserved except as explicitly granted in the license agreement
+ # between NimbeLink Corp. and the designated licensee.  No other use or
+ # disclosure of this software is permitted. Portions of this software may be
+ # subject to third party license terms as specified in this software, and such
+ # portions are excluded from the preceding copyright notice of NimbeLink Corp.
+ ##
+
+config NIMBELINK_VERSION
+    bool "Generate version information"
+    default y if NIMBELINK_SDK
+    help
+        This will generate version information for use by MCUBoot and the
+        application firmware. The MCUBoot version information is used by the
+        MCUBoot boot loader to manage its A/B images and their
+        inter-dependencies. The application version information is made
+        available for querying from within the application itself, and it does
+        not impact MCUBoot's behavior.
+
+        Selecting this configuration will resulting in two files being
+        generated, which will include the MCUBoot and application version
+        information. If the 'generate' configuration is used, the build process
+        will use 'git describe' to detect a version for the application. If
+        either version type is specified directly using their string
+        configurations, those values will be put into the generated files once
+        during the CMake process, and the files will not be updated during
+        subsequent builds.
+
+        Selecting this configuration will include a C module for querying the
+        compile-time application version from within firmware.
+
+        The MCUBoot version can only contain the x.y.z-b numerical components,
+        whereas the application version is a freeform string and contain any
+        ASCII value.
+
+        In addition to the string configurations, the CMake build system will
+        also allow providing the versions during the build operation using '-D'
+        flags. To override the version string and specify it directly during a
+        build, provide CMake with a definition for
+        'NIMBELINK_VERSION_MCUBOOT_STRING' and/or
+        'NIMBELINK_VERSION_APP_STRING'.
+
+        To override the version file generation and externally write the file
+        contents, provide CMake with any value for
+        'NIMBELINK_VERSION_MCUBOOT_EXTERNAL' and/or
+        'NIMBELINK_VERSION_APP_EXTERNAL' (any non-empty value will suffice, but
+        '1' is recommended).
+
+if NIMBELINK_VERSION
+config NIMBELINK_VERSION_AUTO_GENERATE
+    bool "Generate the application version during compilation"
+    default n
+    help
+        This will trigger generating the current application version information
+        during the compilation process. The version information will be
+        generated using 'git describe'.
+
+config NIMBELINK_VERSION_MCUBOOT_STRING
+    string "An MCUBoot-parsable version string to use"
+    depends on !NIMBELINK_VERSION_AUTO_GENERATE
+    default "0.0.0-0"
+    help
+        If non-empty, this string will be used to specify the MCUBoot version
+        information directly, which is used when signing and/or encrypting
+        binaries. This will prevent the MCUBoot version file from being
+        generated.
+
+config NIMBELINK_VERSION_APP_STRING
+    string "An application version string to use"
+    depends on !NIMBELINK_VERSION_AUTO_GENERATE
+    default "0.0.0"
+    help
+        If non-empty, this string will be used to specify the application
+        version information directly. This will prevent the application version
+        file from being generated.
+
+config NIMBELINK_VERSION_MCUBOOT_FILE
+    string "The file containing the MCUBoot-parsable version information"
+    default "version.mcuboot"
+    help
+        This file contains the MCUBoot-parsable version information, which is
+        used by the MCUBoot boot loader to manage its A/B images and their
+        dependencies. This information is provided when signing and/or
+        encrypting application binaries.
+
+        The file path is relative to the project's binary directry
+        ('PROJECT_BINARY_DIR').
+
+config NIMBELINK_VERSION_APP_FILE
+    string "The file containing the C-parsable version information"
+    default "version.app"
+    help
+        This file contains the C-parsable version information, which is used by
+        application source code to provide runtime version information.
+
+        The file path is relative to the project's binary directry
+        ('PROJECT_BINARY_DIR').
+endif

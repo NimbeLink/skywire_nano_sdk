@@ -12,6 +12,12 @@
  # portions are excluded from the preceding copyright notice of NimbeLink Corp.
  ##
 
+# The version generation is still available even when not using the NimbeLink
+# SDK
+menu "NimbeLink Version Generation"
+rsource "Kconfig.version"
+endmenu
+
 menuconfig NIMBELINK_SDK
     bool "NimbeLink SDK"
     default n
@@ -24,6 +30,15 @@ if NIMBELINK_SDK
 menu "Non-Secure Peripheral Access"
 rsource "Kconfig.peripheral_access"
 endmenu
+
+config NIMBELINK_BUILD_AUTO_SIGN
+    bool "Automatically sign and optionally encrypt the application firmware post-build"
+    depends on BUILD_OUTPUT_HEX
+    default y
+    help
+        This will include a post-build command for signing and optionally
+        encrypting the application firmware image. See 'west nano app sign' for
+        more details.
 
 config AUTO_IMAGE_VALIDATION
     bool "Automatically mark image as valid after application booted"

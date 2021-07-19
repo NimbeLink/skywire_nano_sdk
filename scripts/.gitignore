@@ -1,2 +1,13 @@
-# Ignore the compiled Python files from our west commands
+# Python outputs
+__pycache__
 *.pyc
+
+# Pylint Config
+.pylintrc
+
+# Virtual Environment Directories
+/ENV
+.venv
+
+# Package Directories
+*.egg-info

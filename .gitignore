@@ -1,3 +1,0 @@
-# Ignore Python and our imgtool.py cache database
-*.pyc
-*.db

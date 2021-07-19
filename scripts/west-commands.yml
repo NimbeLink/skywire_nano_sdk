@@ -1,8 +1,8 @@
 # Good evening...
 
 west-commands:
-    -   file: scripts/__main__.py
+    -   file: scripts/nl_sdk/__cmd__.py
         commands:
-            -   name:   skywire
-                class:  SkywireCommand
-                help:   commands for working with a Skywire Nano
+            -   name:   nano
+                class:  SdkCommand
+                help:   provides SDK commands

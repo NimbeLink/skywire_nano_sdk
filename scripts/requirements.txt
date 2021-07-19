@@ -1,2 +1,2 @@
-diskcache
-pynrfjprog
+imgtool
+git+https://github.com/NimbeLink/pynl-base@v1.0.0
