@@ -59,7 +59,7 @@ setup(
         "install": PostInstallCommand
     },
     install_requires = [
-        "imgtool",
+        "imgtool==1.7.2",
 
         "pynl-base @ git+https://github.com/NimbeLink/pynl-base@v1.0.0"
     ]
