@@ -20,7 +20,7 @@ command.WestCommand.setupImports(__file__, "../")
 
 import nl_sdk.commands as commands
 
-class SdkCommand(command.RootCommand, command.WestCommand):
+class SdkCommand(command.WestCommand):
     """Our NimbeLink SDK command
     """
 
