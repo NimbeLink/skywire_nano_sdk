@@ -158,7 +158,7 @@ class FlashCommand(commands.ProjectCommand):
             # Otherwise, if we didn't auto-find a 'default' one, no worries.
             if (len(configFiles) < 1) and (args.config is not None):
                 self.stdout.error(f"Failed to find flash configuration profile '{args.config}'")
-                self.stdout.error(f"{configuration}'")
+                self.stdout.error(f"{project.configuration}'")
 
                 return 1
 
