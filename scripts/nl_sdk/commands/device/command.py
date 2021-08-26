@@ -44,11 +44,11 @@ class Command(command.Command):
             help = "Communicates with a Skywire Nano device",
             needUsb = True,
             subCommands = [
+                InitializeCommand(),
+                FlashCommand(),
+                UpdateCommand(),
                 LockCommand(),
                 PingCommand(),
-                InitializeCommand(),
-                UpdateCommand(),
-                FlashCommand()
             ]
         )
 
