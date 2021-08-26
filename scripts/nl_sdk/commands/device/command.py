@@ -20,6 +20,7 @@ import nimbelink.command as command
 import nimbelink.debugger as debugger
 import nimbelink.utils as utils
 
+from .convert import ConvertCommand
 from .flash import FlashCommand
 from .initialize import InitializeCommand
 from .lock import LockCommand
@@ -49,6 +50,7 @@ class Command(command.Command):
                 UpdateCommand(),
                 LockCommand(),
                 PingCommand(),
+                ConvertCommand(),
             ]
         )
 
