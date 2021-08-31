@@ -103,22 +103,31 @@ class FlashCommand(commands.ProjectCommand):
 
             files.append(file)
 
+        config = None
+
         # If they specified a flash configuration project, try to use it
         if args.config is not None:
             config = args.config
 
             self._logger.info("Config supplied, using it")
 
-        # Else, if no files were supplied, try to find a 'default' one
-        elif len(args.files) < 1:
-            config = "default"
+        # Else, if no files were supplied, choose between a project and a
+        # default configuration
+        elif len(files) < 1:
+            # Try to use our standard project signed app image(s)
+            for project in args.projects:
+                files.append(project.signedArtifact)
 
-            self._logger.info("No configuration but no files, attempting to find 'default'")
+                self.stdout.info(f"Adding '{project.name}' signed firmware image '{project.signedArtifact}'")
+
+            # If we didn't find anything, try use the default configuration
+            if len(files) < 1:
+                config = "default"
+
+                self._logger.info("No configuration but no files, attempting to find 'default'")
 
         # Else, nothing to find
         else:
-            config = None
-
             self._logger.info("No configuration but have files, not bothering finding 'default'")
 
         # If we're looking for a configuration, do so
@@ -167,14 +176,6 @@ class FlashCommand(commands.ProjectCommand):
                     files.append(configFile)
 
                     self.stdout.info(f"Adding configured file '{configFile}'")
-
-        # If we have nothing to do, try to use our standard project signed app
-        # image(s)
-        if len(files) < 1:
-            for project in args.projects:
-                files.append(project.signedArtifact)
-
-                self.stdout.info(f"Adding '{project.name}' signed firmware image '{project.signedArtifact}'")
 
         # Try to reset and halt our target
         try:
