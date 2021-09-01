@@ -12,6 +12,8 @@ excluded from the preceding copyright notice of NimbeLink Corp.
 
 import argparse
 import logging
+import pynrfjprog
+import time
 import typing
 
 from intelhex import IntelHex
@@ -177,26 +179,74 @@ class FlashCommand(commands.ProjectCommand):
 
                     self.stdout.info(f"Adding configured file '{configFile}'")
 
-        # Try to reset and halt our target
+        self.stdout.info("Resetting and halting device...")
+
         try:
-            self.stdout.info("Resetting and halting device...")
-
+            # First see if we can do a 'system' reset
+            #
+            # We'll try this first rather than just use the 'debug' reset so
+            # that we can suss out early on whether or not we have Secure
+            # debugger permission.
             args.nano.tool.dap.api.sys_reset()
-            args.nano.tool.dap.api.halt()
 
-            # If they want an erase, do that first
+            self.stdout.info("Secure debugger permitted")
+
+        except pynrfjprog.APIError.APIError as ex:
+            # If this isn't because of 'protection', re-raise it
+            if ex.err_code != pynrfjprog.APIError.NrfjprogdllErr.NOT_AVAILABLE_BECAUSE_PROTECTION:
+                raise ex
+
+            self.stdout.info("Secure debugger not permitted")
+
+            # If they are going to try to do an erase, let them know now that it
+            # won't work
             if args.erase > 0:
-                self.stdout.info("Mass erasing device...")
+                self.stdout.error("Erase not available without Secure debugger")
 
-                args.nano.tool.dap.api.recover()
+                return 1
 
-        # If we failed to reset and halt, we're probably not going to be able
-        # to use Secure AHB-AP functionality
-        except Exception as ex:
-            self.stdout.warning("Secure debugger functionality likely not available:")
-            self.stdout.warning("{}".format(ex))
-
+            # That failed due to 'protection', so set our Secure/Non-Secure
+            # state to only do Non-Secure stuff
             args.nano.tool.ahb.setSecureState(secure = False)
+
+            # Do a Non-Secure-permitted 'debug' reset
+            args.nano.tool.dap.api.debug_reset()
+
+        # Try to halt the core
+        #
+        # The halt operation appears to be the most unreliable operation, likely
+        # because of needing a Non-Secure core context to perform the action.
+        # So, give it a few tries.
+        #
+        # Note that we will not consider it a complete failure if we don't halt
+        # the core, as it's still entirely possible to flash Non-Secure firmware
+        # without the core being halted. We really only care about halting the
+        # core if it's going to be actively running Non-Secure code while we do
+        # the flashing.
+        for i in range(10):
+            try:
+                args.nano.tool.dap.api.halt()
+                break
+
+            except pynrfjprog.APIError.APIError as ex:
+                # If this isn't because of the DLL error, re-raise it
+                if ex.err_code != pynrfjprog.APIError.NrfjprogdllErr.JLINKARM_DLL_ERROR:
+                    raise ex
+
+                # Wait a little bit before trying again
+                time.sleep(1.0)
+
+        if not args.nano.tool.dap.api.is_halted():
+            self.stdout.warning("Failed to halt core; continuing anyway")
+
+        # If they want an erase, do that first
+        #
+        # We expect this to work, since we validated if it's available above, so
+        # don't bother catching any exceptions.
+        if args.erase > 0:
+            self.stdout.info("Mass erasing device...")
+
+            args.nano.tool.dap.api.recover()
 
         chunks = []
 
@@ -218,20 +268,17 @@ class FlashCommand(commands.ProjectCommand):
                 # Chunk the data further into collections of page data
                 chunks.append(utils.Flash.Chunk(start = segment[0], data = data))
 
+        self.stdout.info("Flashing all contents...")
+
         # Write the chunks out
         utils.Flash.writeChunks(ahb = args.nano.tool.ahb, chunks = chunks)
 
-        # Try to reboot the device now that it should be programmed
-        try:
-            self.stdout.info("Resetting and running device...")
+        self.stdout.info("Flash done!")
 
-            args.nano.tool.dap.api.sys_reset()
-            args.nano.tool.dap.api.go()
+        self.stdout.info("Resetting and running device...")
 
-        # If we fail for some reason, meh, ignore that
-        #
-        # It's likely just from being Non-Secure anyway.
-        except Exception as ex:
-            pass
+        # Reboot and run the device now that it should be programmed
+        args.nano.tool.dap.api.debug_reset()
+        args.nano.tool.dap.api.go()
 
         return 0
