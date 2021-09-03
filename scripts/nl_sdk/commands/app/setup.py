@@ -23,6 +23,20 @@ import nl_sdk.commands as commands
 
 class SetupCommand(commands.ProjectCommand):
     """Sets up a Skywire Nano project
+
+    This will generate signing and encrypting keys for a Skywire Nano project
+    and configure local settings for accessing them automatically from other
+    NimbeLink SDK commands. You can view all local settings using:
+
+        'west config -l'
+
+    By default, the signing key will be named 'sign.pem', and the encrypting key
+    will be named 'encrypt.pem'. If different names are desired, they can be
+    specified manually.
+
+    If keys are specified using arguments and their target file already exists,
+    this command will assume the keys have been generated and will only create
+    configurations for them.
     """
 
     def __init__(self) -> None:
@@ -35,24 +49,6 @@ class SetupCommand(commands.ProjectCommand):
         """
 
         super().__init__(
-            name = "setup",
-            help = "Sets up a Skywire Nano project",
-            description =
-                """This will generate signing and encrypting keys for a Skywire
-                Nano project and configure local settings for accessing them
-                automatically from other NimbeLink SDK commands. You can view
-                all local settings using:
-
-                    'west config -l'
-
-                By default, the signing key will be named 'sign.pem', and the
-                encrypting key will be named 'encrypt.pem'. If different names
-                are desired, they can be specified manually.
-
-                If keys are specified using arguments and their target file
-                already exists, this command will assume the keys have been
-                generated and will only create configurations for them.
-                """,
             singleProject = True,
             resources = [
                 commands.ProjectCommand.Resource(commands.ProjectCommand.Resource.Type.SignKey),

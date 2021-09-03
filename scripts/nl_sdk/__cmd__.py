@@ -172,7 +172,7 @@ class SdkCommand(command.WestCommand):
 
                 """,
             subCommands = [
-                commands.app.Command(),
-                commands.device.Command()
+                commands.app.AppCommand(),
+                commands.device.DeviceCommand()
             ]
         )

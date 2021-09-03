@@ -37,8 +37,6 @@ class FlashCommand(commands.ProjectCommand):
         """
 
         super().__init__(
-            name = "flash",
-            help = "Flashes Skywire Nano devices",
             singleProject = False,
             resources = [
                 commands.ProjectCommand.Resource(commands.ProjectCommand.Resource.Type.SignedArtifact),

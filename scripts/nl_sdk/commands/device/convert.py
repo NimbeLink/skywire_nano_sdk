@@ -15,7 +15,7 @@ import typing
 import nimbelink.command as command
 
 class ConvertCommand(command.Command):
-    """Converts a Skywire Nano device
+    """Converts a Skywire Nano device for application firmware use
     """
 
     def __init__(self) -> None:
@@ -28,9 +28,7 @@ class ConvertCommand(command.Command):
         """
 
         super().__init__(
-            name = "convert",
-            needUsb = True,
-            help = "Converts a Skywire Nano device for application firmware use"
+            needUsb = True
         )
 
     def runCommand(self, args: typing.List[object]) -> int:

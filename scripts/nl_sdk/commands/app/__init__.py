@@ -10,8 +10,8 @@ party license terms as specified in this software, and such portions are
 excluded from the preceding copyright notice of NimbeLink Corp.
 """
 
-from .command import Command
+from .command import AppCommand
 
 __all__ = [
-    "Command",
+    "AppCommand",
 ]

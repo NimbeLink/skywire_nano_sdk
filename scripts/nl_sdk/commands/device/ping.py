@@ -28,9 +28,7 @@ class PingCommand(command.Command):
         """
 
         super().__init__(
-            name = "ping",
-            needUsb = True,
-            help = "Pings a connected Skywire Nano device"
+            needUsb = True
         )
 
     def runCommand(self, args: typing.List[object]) -> int:

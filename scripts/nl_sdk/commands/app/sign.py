@@ -17,7 +17,27 @@ from imgtool.main import imgtool
 import nl_sdk.commands as commands
 
 class SignCommand(commands.ProjectCommand):
-    """Signs or encrypts Skywire Nano firmware
+    """Signs and encrypts Skywire Nano firmware
+
+    This will generate a signed copy of Skywire Nano firmware, and will
+    optionally encrypt the firmware image as well.
+
+    The Skywire Nano MCUBoot boot loader requires header information in firmware
+    images, which get added during the signing/encrypting process. This
+    information is found in a firmware project's configuration and will be
+    automatically detected, but can be provided to the command manually.
+
+    If the output file is not specified, a HEX image will be generated in the
+    current directory when signing, and an additional BIN image will be
+    generated when encrypting.
+
+    If more than one project is specified, their names will automatically be
+    added to the output file name(s).
+
+    To avoid having to include the signing/encrypting key paths each time, the
+    'west' configurations for projects and keys can be used instead. Refer to
+    this command's parent's help text for more information on the available
+    configurations and how to use them.
     """
 
     def __init__(self) -> None:
@@ -30,30 +50,6 @@ class SignCommand(commands.ProjectCommand):
         """
 
         super().__init__(
-            name = "sign",
-            help = "Signs and encrypts Skywire Nano firmware",
-            description =
-                """This will generate a signed copy of Skywire Nano firmware,
-                and will optionally encrypt the firmware image as well.
-
-                The Skywire Nano MCUBoot boot loader requires header information
-                in firmware images, which get added during the
-                signing/encrypting process. This information is found in a
-                firmware project's configuration and will be automatically
-                detected, but can be provided to the command manually.
-
-                If the output file is not specified, a HEX image will be
-                generated in the current directory when signing, and an
-                additional BIN image will be generated when encrypting.
-
-                If more than one project is specified, their names will
-                automatically be added to the output file name(s).
-
-                To avoid having to include the signing/encrypting key paths each
-                time, the 'west' configurations for projects and keys can be
-                used instead. Refer to this command's parent's help text for
-                more information on the available configurations and how to use
-                them. """,
             singleProject = False,
             resources = [
                 commands.ProjectCommand.Resource(commands.ProjectCommand.Resource.Type.SignKey, singleValue = True),

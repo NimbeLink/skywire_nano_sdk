@@ -19,6 +19,14 @@ import nl_sdk.commands as commands
 
 class FormatCommand(commands.ProjectCommand):
     """Formats Skywire Nano device firmware for DFU uploading
+
+    This command applies a Skywire Nano-specific DFU header to a firmware image
+
+    Commands handling uploading firmware to a Skywire Nano handle the process of
+    applying headers on-the-fly, but if the firmware image needs to be hosted
+    for FOTA or needs to be available locally ahead of time (e.g. for sending
+    via an application's XMODEM handling) the header can be applied to the
+    firmware image with this command.
     """
 
     def __init__(self) -> None:
@@ -31,18 +39,6 @@ class FormatCommand(commands.ProjectCommand):
         """
 
         super().__init__(
-            name = "format",
-            help = "Formats Skywire Nano device firmware for DFU",
-            description =
-                """This command applies a Skywire Nano-specific DFU header to a
-                firmware image
-
-                Commands handling uploading firmware to a Skywire Nano handle
-                the process of applying headers on-the-fly, but if the firmware
-                image needs to be hosted for FOTA or needs to be available
-                locally ahead of time (e.g. for sending via an application's
-                XMODEM handling) the header can be applied to the firmware image
-                with this command. """,
             singleProject = True,
             resources = [
                 commands.ProjectCommand.Resource(commands.ProjectCommand.Resource.Type.UpdateArtifact, name = "application"),

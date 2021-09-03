@@ -20,7 +20,7 @@ import nimbelink.command as command
 import nl_sdk.commands as commands
 
 class InitializeCommand(commands.ProjectCommand):
-    """Initializes a converted Skywire Nano device
+    """Initializes a Skywire Nano device for application firmware use
     """
 
     def __init__(self) -> None:
@@ -33,8 +33,6 @@ class InitializeCommand(commands.ProjectCommand):
         """
 
         super().__init__(
-            name = "initialize",
-            help = "Initializes a Skywire Nano device for application firmware use",
             singleProject = True,
             resources = [
                 commands.ProjectCommand.Resource(commands.ProjectCommand.Resource.Type.SignKey),

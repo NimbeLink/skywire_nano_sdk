@@ -19,8 +19,8 @@ from .format import FormatCommand
 from .setup import SetupCommand
 from .sign import SignCommand
 
-class Command(command.WestCommand):
-    """A command for working with Skywire Nano firmware
+class AppCommand(command.WestCommand):
+    """Manages built Skywire Nano firmware images
     """
 
     def __init__(self) -> None:
@@ -33,8 +33,6 @@ class Command(command.WestCommand):
         """
 
         super().__init__(
-            name = "app",
-            help = "Manages built Skywire Nano firmware images",
             subCommands = [
                 SetupCommand(),
                 SignCommand(),

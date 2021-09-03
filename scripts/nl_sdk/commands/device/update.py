@@ -32,8 +32,6 @@ class UpdateCommand(commands.ProjectCommand):
         """
 
         super().__init__(
-            name = "update",
-            help = "Updates Skywire Nano device firmware via XMODEM",
             singleProject = False,
             resources = [
                 commands.ProjectCommand.Resource(commands.ProjectCommand.Resource.Type.UpdateArtifact, name = "application", singleValue = False),

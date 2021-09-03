@@ -27,7 +27,7 @@ from .lock import LockCommand
 from .ping import PingCommand
 from .update import UpdateCommand
 
-class Command(command.Command):
+class DeviceCommand(command.Command):
     """A command for communicating with Skywire Nano devices
     """
 
@@ -41,8 +41,6 @@ class Command(command.Command):
         """
 
         super().__init__(
-            name = "device",
-            help = "Communicates with a Skywire Nano device",
             needUsb = True,
             subCommands = [
                 InitializeCommand(),

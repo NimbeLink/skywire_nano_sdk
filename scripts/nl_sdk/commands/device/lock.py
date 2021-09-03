@@ -29,9 +29,7 @@ class LockCommand(command.Command):
         """
 
         super().__init__(
-            name = "lock",
-            needUsb = True,
-            help = "Locks a connected Skywire Nano device"
+            needUsb = True
         )
 
     def addArguments(self, parser: argparse.ArgumentParser) -> None:
