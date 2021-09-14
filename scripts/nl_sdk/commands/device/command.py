@@ -142,6 +142,7 @@ class Command(command.Command):
                     baudrate = args.atBaudRate,
                     rtscts = flowControl
                 )
+
             except serial.serialutil.SerialException as ex:
                 if "PermissionError" not in f"{ex}":
                     raise ex
@@ -161,10 +162,9 @@ class Command(command.Command):
         # If they specified the XMODEM interface, make it
         if args.xmodemDevice is not None:
             try:
-                kernelLog = device = serial.Serial(
+                kernelLog = serial.Serial(
                     port = args.xmodemDevice,
                     baudrate = args.xmodemBaudRate,
-                    timeout = 1,
                     rtscts = flowControl
                 )
 
