@@ -61,6 +61,6 @@ setup(
     install_requires = [
         "imgtool==1.7.2",
 
-        "pynl-base @ git+https://github.com/NimbeLink/pynl-base@v1.0.2"
+        "pynl-cell @ git+https://github.com/NimbeLink/pynl-cell@v1.0.0"
     ]
 )
