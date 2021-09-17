@@ -18,7 +18,7 @@ import nimbelink.utils as utils
 
 import nl_sdk as sdk
 
-class ProjectCommand(command.WestCommand):
+class ProjectCommand(command.Command):
     """A command that provides needed arguments for setting up a command's
     project context
 
@@ -285,9 +285,9 @@ class ProjectCommand(command.WestCommand):
         :param self:
             Self
         :param *args:
-            Positional WestCommand arguments
+            Positional Command arguments
         :param **kwargs:
-            Keyword WestCommand arguments
+            Keyword Command arguments
         :param singleProject:
             Whether or not this command should only accept a single project
         :param resources:

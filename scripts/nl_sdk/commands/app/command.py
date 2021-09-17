@@ -19,7 +19,7 @@ from .format import FormatCommand
 from .setup import SetupCommand
 from .sign import SignCommand
 
-class AppCommand(command.WestCommand):
+class AppCommand(command.Command):
     """Manages built Skywire Nano firmware images
     """
 
