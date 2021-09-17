@@ -57,14 +57,14 @@ class UpdateCommand(commands.ProjectCommand):
             "-s", "--stack",
             action = "append",
             required = False,
-            help = "Specify a stack firmware update file to format"
+            help = "Specify a stack firmware update file to update"
         )
 
         parser.add_argument(
             "-m", "--modem",
             action = "append",
             required = False,
-            help = "Specify a modem firmware update file to format"
+            help = "Specify a modem firmware update file to update"
         )
 
         parser.add_argument(
