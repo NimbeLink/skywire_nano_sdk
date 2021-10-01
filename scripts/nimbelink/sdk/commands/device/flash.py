@@ -21,7 +21,7 @@ from intelhex import IntelHex
 import nimbelink.command as command
 import nimbelink.utils as utils
 
-import nl_sdk.commands as commands
+import nimbelink.sdk.commands as commands
 
 class FlashCommand(commands.ProjectCommand):
     """A command for flashing Skywire Nano devices

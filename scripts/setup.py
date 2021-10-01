@@ -10,57 +10,7 @@ party license terms as specified in this software, and such portions are
 excluded from the preceding copyright notice of NimbeLink Corp.
 """
 
-from distutils.core import setup
-from setuptools import find_packages
-from setuptools.command.develop import develop
-from setuptools.command.install import install
+import setuptools
 
-class PostDevelopCommand(develop):
-    """Post-installation for development mode
-    """
-
-    def run(self) -> None:
-        """Runs our post-installation handling
-
-        :param self:
-
-        :return none:
-        """
-
-        develop.run(self)
-
-        import nimbelink.module as module
-        module.register(module.Module(name = "nl_sdk", alias = "sdk"))
-
-class PostInstallCommand(install):
-    """Post-installation for install mode
-    """
-
-    def run(self) -> None:
-        """Runs our post-installation handling
-
-        :param self:
-
-        :return none:
-        """
-
-        install.run(self)
-
-        import nimbelink.module as module
-        module.register(module.Module(name = "nl_sdk", alias = "sdk"))
-
-setup(
-    name = "pynl-sdk",
-    description = "NimbeLink SDK",
-    version = "1.0.0",
-    packages = find_packages(),
-    cmdclass = {
-        "develop": PostDevelopCommand,
-        "install": PostInstallCommand
-    },
-    install_requires = [
-        "imgtool==1.7.2",
-
-        "pynl-cell @ git+https://github.com/NimbeLink/pynl-cell@v1.0.0"
-    ]
-)
+if __name__ == "__main__":
+    setuptools.setup()

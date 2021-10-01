@@ -15,7 +15,7 @@ import typing
 
 import nimbelink.cell.modem.nano as nano
 
-import nl_sdk.commands as commands
+import nimbelink.sdk.commands as commands
 
 class FormatCommand(commands.ProjectCommand):
     """Formats Skywire Nano device firmware for DFU uploading

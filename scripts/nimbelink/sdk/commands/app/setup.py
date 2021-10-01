@@ -18,8 +18,8 @@ from imgtool.main import imgtool
 
 import nimbelink.config as config
 
-import nl_sdk as sdk
-import nl_sdk.commands as commands
+import nimbelink.sdk as sdk
+import nimbelink.sdk.commands as commands
 
 class SetupCommand(commands.ProjectCommand):
     """Sets up a Skywire Nano project

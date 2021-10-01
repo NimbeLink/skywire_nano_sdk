@@ -17,7 +17,7 @@ import typing
 import nimbelink.cell.modem.nano as nano
 import nimbelink.command as command
 
-import nl_sdk.commands as commands
+import nimbelink.sdk.commands as commands
 
 class InitializeCommand(commands.ProjectCommand):
     """Initializes a Skywire Nano device for application firmware use

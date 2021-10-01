@@ -1,7 +1,7 @@
 # Good evening...
 
 west-commands:
-    -   file: scripts/nl_sdk/__cmd__.py
+    -   file: scripts/nimbelink/sdk/__cmd__.py
         commands:
             -   name:   nano
                 class:  SdkCommand

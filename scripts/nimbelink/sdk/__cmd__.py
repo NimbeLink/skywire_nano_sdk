@@ -18,8 +18,8 @@ import nimbelink.config as config
 
 command.WestCommand.setupImports(__file__, "../")
 
-import nl_sdk.commands.app as app
-import nl_sdk.commands.device as device
+import nimbelink.sdk.commands.app as app
+import nimbelink.sdk.commands.device as device
 
 class SdkCommand(command.WestCommand):
     """Our NimbeLink SDK command

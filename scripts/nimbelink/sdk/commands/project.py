@@ -16,7 +16,7 @@ import typing
 import nimbelink.command as command
 import nimbelink.utils as utils
 
-import nl_sdk as sdk
+import nimbelink.sdk as sdk
 
 class ProjectCommand(command.Command):
     """A command that provides needed arguments for setting up a command's

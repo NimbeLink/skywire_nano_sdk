@@ -14,7 +14,7 @@ import typing
 
 from imgtool.main import imgtool
 
-import nl_sdk.commands as commands
+import nimbelink.sdk.commands as commands
 
 class SignCommand(commands.ProjectCommand):
     """Signs and encrypts Skywire Nano firmware
