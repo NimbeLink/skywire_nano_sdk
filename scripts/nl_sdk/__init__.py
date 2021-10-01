@@ -12,8 +12,6 @@ excluded from the preceding copyright notice of NimbeLink Corp.
 
 from .project import Project
 
-from . import commands
-
 __all__ = [
     "Project",
 

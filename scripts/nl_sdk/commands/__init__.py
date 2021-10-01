@@ -12,9 +12,6 @@ excluded from the preceding copyright notice of NimbeLink Corp.
 
 from .project import ProjectCommand
 
-from . import app
-from . import device
-
 __all__ = [
     "ProjectCommand",
 
