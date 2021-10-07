@@ -1,2 +1,0 @@
-imgtool==1.7.2
-git+https://github.com/NimbeLink/pynl-cell@v1.0.0
