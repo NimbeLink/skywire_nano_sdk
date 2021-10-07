@@ -21,7 +21,7 @@ command.WestCommand.setupImports(__file__, "../")
 import nimbelink.sdk.commands.app as app
 import nimbelink.sdk.commands.device as device
 
-class SdkCommand(command.WestCommand):
+class NanoCommand(command.WestCommand):
     """Our NimbeLink SDK command
     """
 
@@ -83,7 +83,6 @@ class SdkCommand(command.WestCommand):
         singleFlashConfig["flash"].add(config.Option(name = "app", value = "app.hex"))
 
         super().__init__(
-            name = "nano",
             help = "Provides SDK functionality",
             description =
                 f"""The SDK command provides sub-commands for working with
@@ -177,3 +176,8 @@ class SdkCommand(command.WestCommand):
                 device.DeviceCommand()
             ]
         )
+
+__commands__ = [
+    NanoCommand()
+]
+"""Our package's commands"""

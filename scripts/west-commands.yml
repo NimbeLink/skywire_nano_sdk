@@ -4,5 +4,5 @@ west-commands:
     -   file: scripts/nimbelink/sdk/__cmd__.py
         commands:
             -   name:   nano
-                class:  SdkCommand
+                class:  NanoCommand
                 help:   provides SDK commands

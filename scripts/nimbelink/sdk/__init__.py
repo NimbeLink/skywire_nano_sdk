@@ -17,8 +17,3 @@ __all__ = [
 
     "commands"
 ]
-
-import nimbelink.command as command
-from .__cmd__ import SdkCommand
-
-command.register(SdkCommand())
