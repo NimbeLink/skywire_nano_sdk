@@ -1,5 +1,5 @@
 """
-NimbeLink SDK
+The main entry point for the SDK commands
 
 (C) NimbeLink Corp. 2021
 
@@ -10,10 +10,4 @@ party license terms as specified in this software, and such portions are
 excluded from the preceding copyright notice of NimbeLink Corp.
 """
 
-from .project import Project
-
-__all__ = [
-    "Project",
-
-    "commands"
-]
+from  nimbelink.sdk.__cmd__ import NanoCommand
